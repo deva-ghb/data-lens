@@ -1,6 +1,8 @@
 from fastapi import APIRouter, FastAPI
 
+from app.api.activities import router as activities_router
 from app.api.assignments import router as assignments_router
+from app.api.governance import router as governance_router
 from app.api.home import router as home_router
 from app.api.ingest import router as ingest_router
 from app.auth.router import router as auth_router
@@ -11,6 +13,8 @@ api.include_router(auth_router)
 api.include_router(ingest_router)
 api.include_router(home_router)
 api.include_router(assignments_router)
+api.include_router(activities_router)
+api.include_router(governance_router)
 
 
 @api.get("/health")

@@ -132,7 +132,20 @@ def score(
         confidence -= 0.25
     confidence -= 0.1 * len(condition_layer.late_feeds)
     if not reason:
-        top = [d["reason"] for d in drivers if d["contribution"] > 0.02][:3]
+        # The planner-facing reason: the person's own work terms first, then the shift's
+        # conditions. The behavioural group stays inside the score and is never named
+        # against a person; the activity's history is shown on the activity, not here.
+        personal = [
+            d["reason"]
+            for d in drivers
+            if d["layer"] == "profile"
+            and d["name"] != "safety_behaviour"
+            and d["contribution"] > 0.02
+        ][:2]
+        shift = [
+            d["reason"] for d in drivers if d["layer"] == "condition" and d["contribution"] > 0.02
+        ][:2]
+        top = personal + shift
         reason = "; ".join(top) if top else "Within the activity's demands"
 
     return ScoreResult(
