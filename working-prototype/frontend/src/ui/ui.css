@@ -614,6 +614,7 @@
 
 /* ---------- Table ---------- */
 .dl-table-wrap {
+  position: relative; /* keeps visually hidden cell text inside the scroll area */
   overflow-x: auto;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -830,6 +831,23 @@
 @media (max-width: 640px) {
   .dl-card__header {
     padding: var(--space-2) var(--space-2) 0;
+    flex-wrap: wrap;
+  }
+
+  /* Filters in a card header take their own full-width line on a phone. */
+  .dl-card__actions {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    margin-top: 0;
+  }
+
+  .dl-card__actions > .row {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .dl-card__actions > .row > * {
+    flex: 1 1 140px;
   }
 
   .dl-card__body {

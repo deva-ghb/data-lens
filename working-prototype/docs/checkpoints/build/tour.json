@@ -1,0 +1,626 @@
+[
+  {
+    "user": "daniel.mensah",
+    "path": "/",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-home-1440.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/roster",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-roster-1440.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/permits",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-permits-1440.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/activities",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-activities-1440.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/groups",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-groups-1440.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/actions",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-actions-1440.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-home-390.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/roster",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-roster-390.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/permits",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-permits-390.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/activities",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-activities-390.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/groups",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-groups-390.png"
+  },
+  {
+    "user": "daniel.mensah",
+    "path": "/actions",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "daniel-actions-390.png"
+  },
+  {
+    "user": "khalid.alnuaimi",
+    "path": "/",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "khalid-home-1440.png"
+  },
+  {
+    "user": "khalid.alnuaimi",
+    "path": "/swaps",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "khalid-swaps-1440.png"
+  },
+  {
+    "user": "khalid.alnuaimi",
+    "path": "/permits",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "khalid-permits-1440.png"
+  },
+  {
+    "user": "khalid.alnuaimi",
+    "path": "/",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "khalid-home-390.png"
+  },
+  {
+    "user": "khalid.alnuaimi",
+    "path": "/swaps",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "khalid-swaps-390.png"
+  },
+  {
+    "user": "khalid.alnuaimi",
+    "path": "/permits",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "khalid-permits-390.png"
+  },
+  {
+    "user": "priya.raman",
+    "path": "/",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "priya-home-1440.png"
+  },
+  {
+    "user": "priya.raman",
+    "path": "/permits",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "priya-permits-1440.png"
+  },
+  {
+    "user": "priya.raman",
+    "path": "/",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "priya-home-390.png"
+  },
+  {
+    "user": "priya.raman",
+    "path": "/permits",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "priya-permits-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-home-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/warnings",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-warnings-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/district",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-district-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/reports",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-reports-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/inspections",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-inspections-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/actions",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-actions-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/learning",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-learning-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/activities",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-activities-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/validation",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-validation-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/impact",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-impact-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/governance",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-governance-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/audit",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-audit-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/signals",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-signals-1440.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-home-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/warnings",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-warnings-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/district",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-district-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/reports",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-reports-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/inspections",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-inspections-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/actions",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-actions-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/learning",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-learning-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/activities",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-activities-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/validation",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-validation-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/impact",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-impact-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/governance",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-governance-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/audit",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-audit-390.png"
+  },
+  {
+    "user": "layla.haddad",
+    "path": "/signals",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "layla-signals-390.png"
+  },
+  {
+    "user": "sara.ibrahim",
+    "path": "/",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "sara-home-1440.png"
+  },
+  {
+    "user": "sara.ibrahim",
+    "path": "/health",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "sara-health-1440.png"
+  },
+  {
+    "user": "sara.ibrahim",
+    "path": "/",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "sara-home-390.png"
+  },
+  {
+    "user": "sara.ibrahim",
+    "path": "/health",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "sara-health-390.png"
+  },
+  {
+    "user": "ahmed.alshamsi",
+    "path": "/",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "ahmed-home-1440.png"
+  },
+  {
+    "user": "ahmed.alshamsi",
+    "path": "/district",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "ahmed-district-1440.png"
+  },
+  {
+    "user": "ahmed.alshamsi",
+    "path": "/governance",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "ahmed-governance-1440.png"
+  },
+  {
+    "user": "ahmed.alshamsi",
+    "path": "/audit",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "ahmed-audit-1440.png"
+  },
+  {
+    "user": "ahmed.alshamsi",
+    "path": "/",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "ahmed-home-390.png"
+  },
+  {
+    "user": "ahmed.alshamsi",
+    "path": "/district",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "ahmed-district-390.png"
+  },
+  {
+    "user": "ahmed.alshamsi",
+    "path": "/governance",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "ahmed-governance-390.png"
+  },
+  {
+    "user": "ahmed.alshamsi",
+    "path": "/audit",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "ahmed-audit-390.png"
+  },
+  {
+    "user": "hessa.almansoori",
+    "path": "/",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "hessa-home-1440.png"
+  },
+  {
+    "user": "hessa.almansoori",
+    "path": "/admin/people",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "hessa-admin-people-1440.png"
+  },
+  {
+    "user": "hessa.almansoori",
+    "path": "/admin/clock",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "hessa-admin-clock-1440.png"
+  },
+  {
+    "user": "hessa.almansoori",
+    "path": "/signals",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "hessa-signals-1440.png"
+  },
+  {
+    "user": "hessa.almansoori",
+    "path": "/",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "hessa-home-390.png"
+  },
+  {
+    "user": "hessa.almansoori",
+    "path": "/admin/people",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "hessa-admin-people-390.png"
+  },
+  {
+    "user": "hessa.almansoori",
+    "path": "/admin/clock",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "hessa-admin-clock-390.png"
+  },
+  {
+    "user": "hessa.almansoori",
+    "path": "/signals",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "hessa-signals-390.png"
+  },
+  {
+    "user": "arjun.thapa",
+    "path": "/m",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "arjun-m-1440.png"
+  },
+  {
+    "user": "arjun.thapa",
+    "path": "/m/report",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "arjun-m-report-1440.png"
+  },
+  {
+    "user": "arjun.thapa",
+    "path": "/m/cards",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "arjun-m-cards-1440.png"
+  },
+  {
+    "user": "arjun.thapa",
+    "path": "/m",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "arjun-m-390.png"
+  },
+  {
+    "user": "arjun.thapa",
+    "path": "/m/report",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "arjun-m-report-390.png"
+  },
+  {
+    "user": "arjun.thapa",
+    "path": "/m/cards",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "arjun-m-cards-390.png"
+  },
+  {
+    "user": "joseph.kariuki",
+    "path": "/m/foreman",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "joseph-m-foreman-1440.png"
+  },
+  {
+    "user": "joseph.kariuki",
+    "path": "/m/report",
+    "width": 1440,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "joseph-m-report-1440.png"
+  },
+  {
+    "user": "joseph.kariuki",
+    "path": "/m/foreman",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "joseph-m-foreman-390.png"
+  },
+  {
+    "user": "joseph.kariuki",
+    "path": "/m/report",
+    "width": 390,
+    "errors": [],
+    "horizontalScroll": false,
+    "shot": "joseph-m-report-390.png"
+  }
+]

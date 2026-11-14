@@ -39,7 +39,7 @@ export function Signals() {
           <div className="stack">
             {s.live_weather && (
               <p className="small">
-                Live Abu Dhabi weather: {s.live_weather.ok ? `pulled ${s.live_weather.last_success?.replace("T", " ").slice(0, 16)} UTC` : `last pull failed (${s.live_weather.error})`}
+                Live Abu Dhabi weather: {s.live_weather.ok ? `last pulled ${s.live_weather.last_success ? localTime(s.live_weather.last_success.slice(0, 19)) : "never"} Abu Dhabi time` : `last pull failed (${s.live_weather.error})`}
               </p>
             )}
             <Card flush><Table caption="Feeds" columns={columns} rows={s.feeds} rowKey={(f) => f.code} /></Card>

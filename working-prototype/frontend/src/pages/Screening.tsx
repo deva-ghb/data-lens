@@ -15,7 +15,7 @@ export function Screening() {
   const columns: Column<Item>[] = [
     { key: "worker", header: "Worker", render: (i) => <span className="stack stack--tight"><strong>{i.worker}</strong><span className="xsmall muted">{i.job}</span></span> },
     { key: "why", header: "Why on the list", render: (i) => <span className={i.why.startsWith("Reported") ? "pill pill--rose" : "pill pill--lilac"}>{i.why}</span> },
-    { key: "outcome", header: "Latest outcome", render: (i) => (i.latest_outcome ? titleCase(i.latest_outcome) : <span className="muted">None</span>) },
+    { key: "outcome", header: "Latest outcome", render: (i) => (i.latest_outcome ? titleCase(i.latest_outcome) : <span className="muted">Not seen yet</span>) },
   ];
   return (
     <Page title="Screening" subtitle="Health detail stays with you. The employer sees only the outcome, and only if the worker chooses to share it.">

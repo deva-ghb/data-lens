@@ -17,7 +17,10 @@ type MeData = {
   assignment: { id: number; shift: { label: string }; activity: string; zone: string | null } | null;
   checked_in: boolean; tier: Tier | null; reason_en: string | null; reason_local: string | null;
   swap_to: string | null; contest: { status: string; text: string } | null; cards_unread: number;
+  outcome: { id: number; outcome: string; shared: boolean; at: string } | null;
 };
+
+const OUTCOME_WORDS: Record<string, string> = { fit: "Fit", fit_with_restrictions: "Fit with restrictions", not_today: "Not today" };
 
 const SLEEP: [string, string][] = [["under_5", "Under 5 hours"], ["5_to_6", "5 to 6 hours"], ["6_to_7", "6 to 7 hours"], ["7_plus", "7 hours or more"]];
 const FEEL: [string, string][] = [["good", "Good"], ["tired", "Tired"], ["unwell", "Not well"]];
@@ -45,6 +48,7 @@ export function WorkerHome({ me }: { me: Me }) {
           {d.checked_in && <div className="phone-card phone-card--mint small">Checked in. Thank you.</div>}
           {d.tier && d.tier !== "fit" && <Reason d={d} />}
           {d.tier === "fit" && <div className="phone-card phone-card--mint"><TierChip tier="fit" size="lg" /><span className="small">You are good for tonight's work. Stay hydrated.</span></div>}
+          {d.outcome && <Consent outcome={d.outcome} />}
           <Unwell disabled={!d.assignment} />
           <Link to="/m/cards" className="phone-card row row--between" style={{ textDecoration: "none", color: "inherit" }}>
             <span className="row"><BookOpen size={18} aria-hidden="true" /> Safety cards</span>
@@ -137,5 +141,19 @@ function Unwell({ disabled }: { disabled: boolean }) {
         footer={<Button variant="danger" block busy={send.isPending} onClick={() => send.mutate({}, { onSuccess: (r) => { setOpen(false); toast({ title: "The clinic has been told", body: r.next, tone: "warning" }); } })}>Yes, tell the clinic</Button>}
       />
     </>
+  );
+}
+
+function Consent({ outcome }: { outcome: NonNullable<MeData["outcome"]> }) {
+  const send = useSend<{ outcome_id: number; share: boolean }>("POST", "/api/phone/consent");
+  return (
+    <div className="phone-card">
+      <strong>Your clinic outcome: {OUTCOME_WORDS[outcome.outcome] ?? outcome.outcome}</strong>
+      <span className="small muted">Your employer sees only this outcome, never the reason, and only if you agree.</span>
+      <div className="tap-grid">
+        <button type="button" className="tap" aria-pressed={!outcome.shared} onClick={() => send.mutate({ outcome_id: outcome.id, share: false })}>Keep private</button>
+        <button type="button" className="tap" aria-pressed={outcome.shared} onClick={() => send.mutate({ outcome_id: outcome.id, share: true })}>Share outcome</button>
+      </div>
+    </div>
   );
 }

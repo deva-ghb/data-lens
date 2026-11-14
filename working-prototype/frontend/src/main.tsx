@@ -8,9 +8,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
+import { shouldRetry } from "./api/client";
 import { ToastProvider } from "./ui/Toast";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: shouldRetry } } });
 const container = document.getElementById("root");
 if (container === null) {
   throw new Error("Missing #root element");

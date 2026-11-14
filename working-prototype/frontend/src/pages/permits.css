@@ -1,42 +1,94 @@
-.board {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(180px, 1fr));
+.stage-row {
+  flex-wrap: wrap;
   gap: var(--space-1-5);
-  overflow-x: auto;
-  padding-bottom: var(--space-1);
 }
 
-.board__col {
+/* Stage filter: the permit lifecycle as a row of pills with counts. */
+.stages {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-width: 0;
-  padding: var(--space-1-5);
-  border-radius: var(--radius-lg);
-  background: var(--color-wash);
-  min-height: 160px;
+  flex-wrap: wrap;
+  gap: var(--space-half);
+  padding: var(--space-half);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-page);
 }
 
-.board__head {
+.stage {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 30px;
+  padding: 0 var(--space-1-5);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.stage:hover:not(:disabled) {
+  background: var(--color-wash);
+}
+
+.stage:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.stage[aria-pressed="true"] {
+  background: var(--tint-periwinkle-fill);
+  color: var(--tint-periwinkle-ink);
+}
+
+.stage:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.stage__count {
+  font-size: var(--text-xs);
+  color: inherit;
+  opacity: 0.8;
+}
+
+.permit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-1-5);
+}
+
+.permit-card__top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 var(--space-half) var(--space-half);
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
+  width: 100%;
+  gap: var(--space-1);
 }
 
-.board__count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: var(--radius-pill);
-  background: var(--color-page);
-  border: 1px solid var(--color-border);
-  font-size: var(--text-xs);
+.crew-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-half);
+  width: 100%;
+  margin: var(--space-half) 0;
 }
+
+.crew-bar__track {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.crew-bar__seg--good { background: var(--status-good-dot); }
+.crew-bar__seg--warning { background: var(--status-warning-dot); }
+.crew-bar__seg--critical { background: var(--status-critical-dot); }
+.crew-bar__seg--lilac { background: var(--tint-lilac-ink); }
+.crew-bar__seg--neutral { background: var(--color-border-strong); }
 
 .permit-card {
   display: flex;
@@ -44,7 +96,7 @@
   align-items: flex-start;
   gap: var(--space-half);
   width: 100%;
-  padding: var(--space-1-5);
+  padding: var(--space-2);
   border: 1px solid var(--color-border);
   border-left: 3px solid var(--status-good-dot);
   border-radius: var(--radius);
@@ -141,3 +193,5 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.permit-card--unscored { border-left-color: var(--status-neutral-dot); }

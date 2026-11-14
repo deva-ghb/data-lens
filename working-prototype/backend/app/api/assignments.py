@@ -1,6 +1,5 @@
 """Assignment risk: engine runs, the roster with tiers, the layer build, swaps and approval."""
 
-from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -8,12 +7,11 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.common import LOCAL, SessionDep, require_scope
+from app.api.common import SessionDep, require_scope
 from app.clock import site_now
-from app.engine.run import run_scores
+from app.engine.run import evening_shift, run_scores
 from app.errors import ApiError
 from app.models import Person, Shift
-from app.models.roster import ShiftKind
 from app.models.scores import ConditionsSource, RunKind
 
 router = APIRouter(tags=["assignments"])
@@ -49,10 +47,7 @@ def default_shift(session: Session, kind: RunKind) -> Shift | None:
     or the next one to start."""
     now = site_now(session)
     if kind == RunKind.EVENING:
-        tomorrow = (now + LOCAL).date() + timedelta(days=1)
-        return session.scalars(
-            select(Shift).where(Shift.date == tomorrow, Shift.kind == ShiftKind.NIGHT)
-        ).first()
+        return evening_shift(session)
     running = session.scalars(
         select(Shift).where(Shift.start_at <= now, Shift.end_at > now)
     ).first()

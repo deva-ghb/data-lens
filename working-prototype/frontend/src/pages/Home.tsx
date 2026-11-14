@@ -11,14 +11,17 @@ import { ErrorState } from "../ui/ErrorState";
 import { Input } from "../ui/Field";
 import { BulletList } from "../ui/ReasoningPanel";
 import { Skeleton } from "../ui/Skeleton";
+import { useMeta } from "../layout/Meta";
+import { Prose } from "./common";
 import "./pages.css";
 
 type Decision = { title: string; detail: string | null; link: string; tone: "critical" | "warning" | "neutral" };
 type HomeData = { role: string; name: string; brief: ApiDraft; decisions: Decision[] };
 type Answer = { text: string; declined: boolean; note: string };
 
-function greeting(): string {
-  const h = new Date().getHours();
+/** Greets by the site's clock, not the viewer's: the demo runs on site time. */
+function greeting(siteLocal: string | undefined): string {
+  const h = siteLocal ? new Date(siteLocal).getHours() : new Date().getHours();
   return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
 }
 
@@ -26,6 +29,7 @@ export function Home({ me }: { me: Me }) {
   const home = useGet<HomeData>("/api/home", { staleTime: 120_000 });
   const ask = useSend<{ text: string }, Answer>("POST", "/api/home/question");
   const [question, setQuestion] = useState("");
+  const meta = useMeta();
   const brief = toDraft(home.data?.brief);
 
   const submit = (e: FormEvent) => {
@@ -34,7 +38,7 @@ export function Home({ me }: { me: Me }) {
   };
 
   return (
-    <Page title={`${greeting()}, ${me.name.split(" ")[0]}`} subtitle="Your brief for today, and the decisions waiting for you.">
+    <Page title={`${greeting(meta.data?.site_now_local)}, ${me.name.split(" ")[0]}`} subtitle="Your brief for today, and the decisions waiting for you.">
       <div className="grid grid--main-side">
         <div className="stack">
           <Card
@@ -49,7 +53,7 @@ export function Home({ me }: { me: Me }) {
             )}
             {brief && brief.status !== "unavailable" && (
               <div className="stack">
-                <p className="prose">{brief.content}</p>
+                <Prose text={brief.content} />
                 <div className="grid grid--2">
                   <div className="stack stack--tight">
                     <span className="section-title">Unsure about</span>

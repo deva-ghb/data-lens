@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.db import make_engine
 from app.migrate import upgrade_to_head
+from seed.audit_history import write_audit_history
 from seed.generate import generate
 from seed.history_ai import write_history
 from seed.scenario import SEED
@@ -23,6 +24,8 @@ def build_database(path: Path) -> None:
             generate(session, np.random.default_rng(SEED))
             session.commit()
             write_history(session)
+            session.commit()
+            write_audit_history(session)
             session.commit()
     finally:
         engine.dispose()

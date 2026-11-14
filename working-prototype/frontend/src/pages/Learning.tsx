@@ -1,4 +1,5 @@
-import { useGet } from "../api/hooks";
+import { useGet, useSend } from "../api/hooks";
+import { Button } from "../ui/Button";
 import { Page } from "../layout/AppShell";
 import { Card } from "../ui/Card";
 import { EmptyState } from "../ui/EmptyState";
@@ -17,7 +18,7 @@ export function Learning() {
           data.items.length === 0 ? <Card><EmptyState title="No learning items yet" /></Card> : (
             <div className="grid grid--3">
               {data.items.map((i) => (
-                <Card key={i.id} title={KIND[i.kind]} subtitle={`From warning ${i.source_id} · read ${i.reads} times`}>
+                <Card key={i.id} title={KIND[i.kind] ?? i.kind} subtitle={`From warning ${i.source_id} · ${i.status === "draft" ? "not shared yet" : `read ${i.reads} times`}`} actions={i.status === "draft" ? <Share id={i.id} /> : undefined}>
                   <div className="stack">
                     <p className="small prose">{i.content}</p>
                     {i.reads_by_crew.length > 0 && (
@@ -39,4 +40,9 @@ export function Learning() {
       </Loaded>
     </Page>
   );
+}
+
+function Share({ id }: { id: number }) {
+  const share = useSend<Record<string, never>>("POST", `/api/learning/${id}/publish`);
+  return <Button size="sm" variant="primary" busy={share.isPending} onClick={() => share.mutate({})}>Share with crews</Button>;
 }

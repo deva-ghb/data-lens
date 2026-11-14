@@ -283,3 +283,26 @@ def test_gang_mate_cleared_by_clinician_on_19_july(seeded: Session) -> None:
         .where(func.date(FitnessOutcome.at) == "2026-07-19")
     ).first()
     assert outcome is not None and outcome.person_id != arjun.id
+
+
+def test_audit_trail_covers_seeded_history(scenario: Session) -> None:
+    """Every seeded draft, sign-off and closure has its audit entry, at the time it happened."""
+    from app.models import AiDraft, AuditEntry, WarningRecord, WarningStep
+    from app.models.warnings import WarningStatus, WarningStepStatus
+
+    def count(action: str) -> int:
+        return len(scenario.scalars(select(AuditEntry).where(AuditEntry.action == action)).all())
+
+    drafts = scenario.scalars(select(AiDraft)).all()
+    confirmed_steps = scenario.scalars(
+        select(WarningStep).where(WarningStep.status == WarningStepStatus.CONFIRMED)
+    ).all()
+    closed = scenario.scalars(
+        select(WarningRecord).where(WarningRecord.status == WarningStatus.CLOSED)
+    ).all()
+    assert count("ai_draft") == len(drafts)
+    assert count("warning_step_confirmed") == len(confirmed_steps)
+    assert count("warning_closed") == len(closed)
+    assert count("action_created") > 0
+    first = scenario.scalars(select(AuditEntry).order_by(AuditEntry.at)).first()
+    assert first is not None and first.at < datetime(2026, 7, 1)

@@ -84,7 +84,7 @@ export function WorkerHealth() {
 function OutcomeForm({ personId }: { personId: number }) {
   const [outcome, setOutcome] = useState<string>();
   const [restriction, setRestriction] = useState("");
-  const [share, setShare] = useState("yes");
+  const [share, setShare] = useState("no");
   const save = useSend<{ outcome: string; restriction_text: string; share_with_employer: boolean }>("POST", `/api/health/workers/${personId}/outcome`);
   const toast = useToast();
   return (
@@ -102,8 +102,8 @@ function OutcomeForm({ personId }: { personId: number }) {
         {outcome === "fit_with_restrictions" && (
           <Field label="Restriction">{(p) => <TextArea {...p} rows={2} value={restriction} onChange={(e) => setRestriction(e.target.value)} />}</Field>
         )}
-        <Field label="The worker's choice" hint="The worker decides whether the employer sees this outcome.">
-          {(p) => <Select {...p} value={share} onValueChange={setShare} options={[{ value: "yes", label: "Share the outcome with the employer" }, { value: "no", label: "Do not share" }]} />}
+        <Field label="What the worker said about sharing" hint="The worker decides, and can change it on their phone. Nothing is shared by default.">
+          {(p) => <Select {...p} value={share} onValueChange={setShare} options={[{ value: "no", label: "Not shared" }, { value: "yes", label: "The worker agreed to share the outcome" }]} />}
         </Field>
         <Button variant="primary" disabled={!outcome} busy={save.isPending} onClick={() => save.mutate({ outcome: outcome!, restriction_text: restriction, share_with_employer: share === "yes" }, { onSuccess: () => toast({ title: "Outcome recorded", tone: "good" }), onError: (e) => toast({ title: "Not saved", body: e.message, tone: "critical" }) })}>
           Record outcome

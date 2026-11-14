@@ -1,3 +1,10 @@
+/** Retry only what might succeed next time: network and server failures, at most twice.
+ *  A 4xx is the server's real answer, so the screen shows it at once. */
+export function shouldRetry(failureCount: number, error: unknown): boolean {
+  if (error instanceof ApiError && error.status < 500) return false;
+  return failureCount < 2;
+}
+
 export class ApiError extends Error {
   readonly status: number;
   readonly code: string;

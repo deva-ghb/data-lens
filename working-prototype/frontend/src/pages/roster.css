@@ -10,6 +10,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  flex: none;
   width: 260px;
 }
 
@@ -191,4 +192,41 @@
   .roster__search {
     width: 100%;
   }
+}
+
+.rec__contest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-1-5);
+  border-radius: var(--radius-sm);
+  background: var(--tint-sand-fill);
+  border: 1px solid var(--tint-sand-border);
+}
+
+/* One crew over a crew rule: the crew and its work, then the count. */
+.crew-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1-5);
+}
+
+.crew-rule > svg {
+  margin-top: 3px;
+}
+
+.crew-rule__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.crew-rule__gang {
+  font-weight: var(--weight-medium);
+}
+
+.crew-rule__gang .muted {
+  font-weight: var(--weight-regular);
 }

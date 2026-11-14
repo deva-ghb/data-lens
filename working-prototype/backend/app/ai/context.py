@@ -18,7 +18,7 @@ from app.ai.decisions import Choice, Predicate, decide
 from app.ai.drafts import get_or_draft
 from app.audit import audit
 from app.clock import site_now
-from app.engine.run import latest_run
+from app.engine.run import evening_shift, latest_run
 from app.models import (
     Activity,
     Assignment,
@@ -65,13 +65,17 @@ SCOPE_WORDS: dict[str, str] = {
 
 
 def focus_shift(session: Session) -> Shift | None:
-    """The shift the latest engine run looked at, or the next shift to start."""
+    """The shift the latest engine run looked at; before any run, the one the evening run
+    will score; failing that, the next shift to start."""
     run = session.scalars(select(ScoreRun).order_by(ScoreRun.id.desc())).first()
     if run is not None:
         return session.get(Shift, run.shift_id)
-    return session.scalars(
-        select(Shift).where(Shift.start_at >= site_now(session)).order_by(Shift.start_at)
-    ).first()
+    return (
+        evening_shift(session)
+        or session.scalars(
+            select(Shift).where(Shift.start_at >= site_now(session)).order_by(Shift.start_at)
+        ).first()
+    )
 
 
 def _shift_label(shift: Shift) -> str:

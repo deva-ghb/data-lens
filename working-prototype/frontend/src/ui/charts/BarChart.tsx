@@ -67,10 +67,14 @@ export function BarChart({
   );
 
   if (useBars) {
-    const labelW = Math.min(160, Math.max(64, longest * 7 + 8));
+    // Labels that would be cut short go above their bar instead, so they are read in full.
+    const stacked = longest * 7 + 8 > 160;
+    const labelW = stacked ? 0 : Math.max(64, longest * 7 + 8);
     const valueW = 56;
-    const rowH = 36;
+    const rowH = stacked ? 48 : 36;
     const thickness = 16;
+    const barY = (y: number) => (stacked ? y + 24 : y + (rowH - thickness) / 2);
+    const midY = (y: number) => (stacked ? barY(y) + thickness / 2 : y + rowH / 2);
     const innerW = Math.max(0, width - labelW - valueW);
     const svgH = data.length * rowH;
     return (
@@ -87,30 +91,29 @@ export function BarChart({
                   onPointerLeave={() => setActive(null)}
                 >
                   <rect x={0} y={y} width={width} height={rowH} fill="transparent" />
-                  <text x={0} y={y + rowH / 2} dy="0.32em" className="dl-chart__label-text">
-                    <title>{d.label}</title>
-                    {d.label.length * 7 > labelW - 8
-                      ? `${d.label.slice(0, Math.floor((labelW - 16) / 7))}...`
-                      : d.label}
+                  <text x={0} y={stacked ? y + 12 : y + rowH / 2} dy="0.32em" className="dl-chart__label-text">
+                    {d.label}
                   </text>
-                  <line
-                    x1={labelW}
-                    x2={labelW}
-                    y1={y + 6}
-                    y2={y + rowH - 6}
-                    stroke="var(--chart-axis)"
-                    shapeRendering="crispEdges"
-                  />
+                  {!stacked && (
+                    <line
+                      x1={labelW}
+                      x2={labelW}
+                      y1={y + 6}
+                      y2={y + rowH - 6}
+                      stroke="var(--chart-axis)"
+                      shapeRendering="crispEdges"
+                    />
+                  )}
                   {d.value !== null && w > 0 && (
                     <path
-                      d={barPath(labelW, y + (rowH - thickness) / 2, w, thickness)}
+                      d={barPath(labelW, barY(y), w, thickness)}
                       fill={color}
                       opacity={active === null || active === i ? 1 : 0.55}
                     />
                   )}
                   <text
                     x={labelW + w + 8}
-                    y={y + rowH / 2}
+                    y={midY(y)}
                     dy="0.32em"
                     className={d.value === null ? undefined : "dl-chart__value"}
                   >

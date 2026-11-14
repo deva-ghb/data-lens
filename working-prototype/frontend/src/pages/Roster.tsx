@@ -14,7 +14,7 @@ import { Table, type Column } from "../ui/Table";
 import { TextArea } from "../ui/TextArea";
 import { TIER_LOOK, TierChip, type Tier } from "../ui/TierChip";
 import { useToast } from "../ui/Toast";
-import { Loaded, pct } from "./common";
+import { Loaded, pct, titleCase } from "./common";
 import "./pages.css";
 import "./roster.css";
 
@@ -32,7 +32,7 @@ export type RosterRow = {
   reason: string;
   confidence: number | null;
   swap: { id: number; status: string; to: string; reason: string | null } | null;
-  contest: { status: string; text: string } | null;
+  contest: { id: number; status: string; text: string } | null;
 };
 
 type RosterData = {
@@ -115,13 +115,31 @@ export function Roster() {
   );
 }
 
+const PAGE = 25;
+
+type Breach = RosterData["crew_rule_breaches"][number];
+type RuleGroup = { rule: string; limit: string; breaches: (Breach & { fact: string })[] };
+
+/** One card per crew rule: the limit once as the subtitle, then one line per crew over it.
+ *  The server's detail reads "<fact>; <limit>". */
+function groupBreaches(breaches: Breach[]): RuleGroup[] {
+  const groups = new Map<string, RuleGroup>();
+  for (const b of breaches) {
+    const [fact = b.detail, limit = ""] = b.detail.split("; ");
+    const group = groups.get(b.rule) ?? { rule: b.rule, limit, breaches: [] };
+    group.breaches.push({ ...b, fact });
+    groups.set(b.rule, group);
+  }
+  return [...groups.values()];
+}
+
 function RosterBody({ data }: { data: RosterData }) {
   const navigate = useNavigate();
   const [tier, setTier] = useState<string>("all");
   const [query, setQuery] = useState("");
   const split = useGet<Split>(`/api/risk-split?shift_id=${data.shift.id}`);
   const scored = data.rows.filter((r) => r.tier && r.tier !== "not_scored");
-  const recommendations = data.rows.filter((r) => r.swap && r.tier === "reassign");
+  const recommendations = data.rows.filter((r) => r.tier === "reassign");
   const rows = useMemo(
     () =>
       scored.filter(
@@ -131,6 +149,10 @@ function RosterBody({ data }: { data: RosterData }) {
       ),
     [scored, tier, query],
   );
+
+  const [shown, setShown] = useState(PAGE);
+  const visible = rows.slice(0, shown);
+  const ruleGroups = useMemo(() => groupBreaches(data.crew_rule_breaches), [data.crew_rule_breaches]);
 
   const columns: Column<RosterRow>[] = [
     { key: "worker", header: "Worker", render: (r) => <span className="roster__worker">{r.worker}<span className="xsmall muted">{r.employer}</span></span>, width: "22%" },
@@ -154,7 +176,7 @@ function RosterBody({ data }: { data: RosterData }) {
       </div>
       <div className="tier-tiles">
         {TIERS.map((t) => (
-          <button key={t} type="button" className={`tier-tile tier-tile--${t}`} aria-pressed={tier === t} onClick={() => setTier(tier === t ? "all" : t)}>
+          <button key={t} type="button" className={`tier-tile tier-tile--${t}`} aria-pressed={tier === t} onClick={() => { setTier(tier === t ? "all" : t); setShown(PAGE); }}>
             <span className="tier-tile__label">{TIER_LOOK[t].label}</span>
             <span className="tier-tile__value num">{data.tier_counts[t] ?? 0}</span>
           </button>
@@ -177,42 +199,55 @@ function RosterBody({ data }: { data: RosterData }) {
         </Card>
         <div className="stack">
           <SplitCard split={split.data} />
-          {data.crew_rule_breaches.length > 0 && (
-            <Card title="Crew rules">
+          {ruleGroups.map((g) => (
+            <Card key={g.rule} title={`Crew rules: ${g.breaches.length} ${g.breaches.length === 1 ? "crew" : "crews"} over`} subtitle={titleCase(g.limit)}>
               <ul className="list">
-                {data.crew_rule_breaches.map((b) => (
-                  <li key={`${b.gang}-${b.activity}-${b.rule}`} className="row">
+                {g.breaches.map((b) => (
+                  <li key={`${b.gang}-${b.activity}`} className="crew-rule">
                     <TriangleAlert size={16} className="roster__warn" aria-hidden="true" />
-                    <span className="small">
-                      <strong>{b.gang}</strong>, {b.activity?.toLowerCase()}: {b.detail}
+                    <span className="crew-rule__text">
+                      <span className="crew-rule__gang">
+                        {b.gang} <span className="muted">· {b.activity}</span>
+                      </span>
+                      <span className="small num">{b.fact}</span>
                     </span>
                   </li>
                 ))}
               </ul>
             </Card>
-          )}
+          ))}
         </div>
       </div>
       <Card
         title="Everyone on graded work"
-        subtitle={`${rows.length} of ${scored.length} shown. Select a worker to see how the score is built.`}
+        subtitle={`${rows.length === scored.length ? `${scored.length} scored` : `${rows.length} of ${scored.length} match`}. Select a worker to see how the score is built.`}
         actions={
           <div className="row roster__filters">
             <div className="roster__search">
               <Search size={16} aria-hidden="true" />
-              <Input aria-label="Search workers" placeholder="Search name, gang or work" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <Input aria-label="Search workers" placeholder="Search name, gang or work" value={query} onChange={(e) => { setQuery(e.target.value); setShown(PAGE); }} />
             </div>
             <Select
               aria-label="Filter by tier"
               value={tier}
-              onValueChange={setTier}
+              onValueChange={(v) => { setTier(v); setShown(PAGE); }}
               options={[{ value: "all", label: "All tiers" }, ...TIERS.map((t) => ({ value: t, label: TIER_LOOK[t].label }))]}
             />
           </div>
         }
         flush
       >
-        <Table caption="Scored assignments" columns={columns} rows={rows} rowKey={(r) => String(r.assignment_id)} onRowClick={(r) => navigate(`/roster/${r.assignment_id}`)} emptyText="Nobody matches these filters." />
+        <Table caption="Scored assignments" columns={columns} rows={visible} rowKey={(r) => String(r.assignment_id)} onRowClick={(r) => navigate(`/roster/${r.assignment_id}`)} emptyText="Nobody matches these filters." />
+        {rows.length > shown && (
+          <div className="table-more">
+            <span className="small muted">
+              Showing {visible.length} of {rows.length}
+            </span>
+            <Button variant="secondary" onClick={() => setShown(shown + PAGE)}>
+              Show {Math.min(PAGE, rows.length - shown)} more
+            </Button>
+          </div>
+        )}
       </Card>
     </div>
   );
@@ -220,11 +255,13 @@ function RosterBody({ data }: { data: RosterData }) {
 
 function Recommendation({ row }: { row: RosterRow }) {
   const toast = useToast();
-  const accept = useSend<{ reason?: string }>("POST", `/api/swaps/${row.swap!.id}/accept`);
-  const decline = useSend<{ reason: string }>("POST", `/api/swaps/${row.swap!.id}/decline`);
+  const accept = useSend<{ reason?: string }>("POST", `/api/swaps/${row.swap?.id ?? 0}/accept`);
+  const keep = useSend<{ reason: string }>("POST", `/api/assignments/${row.assignment_id}/keep`);
+  const resolve = useSend<{ status: string; note: string }>("POST", `/api/contests/${row.contest?.id ?? 0}/resolve`);
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
-  const pending = row.swap!.status === "proposed";
+  const status = row.swap?.status ?? "none";
+  const pending = status === "proposed" || status === "none";
   return (
     <div className="rec">
       <div className="rec__head">
@@ -239,22 +276,36 @@ function Recommendation({ row }: { row: RosterRow }) {
         <TierChip tier="reassign" />
       </div>
       <p className="small">{row.reason}</p>
-      <div className="rec__swap">
-        <ArrowRight size={16} aria-hidden="true" />
-        <span className="small">
-          Proposed: <strong>{row.swap!.to}</strong> tonight, same crew
-        </span>
-        {row.contest && <span className="pill pill--sand">Contested by the worker</span>}
-      </div>
-      {row.contest && <p className="xsmall muted">“{row.contest.text}”</p>}
+      {row.swap && row.swap.to !== row.activity ? (
+        <div className="rec__swap">
+          <ArrowRight size={16} aria-hidden="true" />
+          <span className="small">
+            Proposed: <strong>{row.swap.to}</strong> tonight, same crew
+          </span>
+        </div>
+      ) : (
+        status === "none" && <p className="small muted">No lower-hazard work fits within the crew rules. Keep with controls, or move by hand.</p>
+      )}
+      {row.contest && (
+        <div className="rec__contest">
+          <span className="pill pill--sand">{row.contest.status === "open" ? "Contested by the worker" : `Contest ${row.contest.status}`}</span>
+          <p className="xsmall muted">“{row.contest.text}”</p>
+          {row.contest.status === "open" && (
+            <div className="row">
+              <Button size="sm" variant="ghost" busy={resolve.isPending} onClick={() => resolve.mutate({ status: "dismissed", note: "The change stands for tonight." })}>Dismiss</Button>
+              <Button size="sm" variant="secondary" busy={resolve.isPending} onClick={() => resolve.mutate({ status: "upheld", note: "Kept on the work with a buddy and extra breaks." })}>Uphold</Button>
+            </div>
+          )}
+        </div>
+      )}
       <div className="row row--between">
-        <span className="xsmall muted">{SWAP_WORDS[row.swap!.status] ?? row.swap!.status}</span>
+        <span className="xsmall muted">{status === "none" ? "Waiting for you" : SWAP_WORDS[status] ?? status}</span>
         {pending && (
           <div className="row">
             <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
-              Decline
+              Keep with controls
             </Button>
-            <Button
+            {row.swap && <Button
               size="sm"
               variant="primary"
               busy={accept.isPending}
@@ -263,15 +314,15 @@ function Recommendation({ row }: { row: RosterRow }) {
               }
             >
               Accept swap
-            </Button>
+            </Button>}
           </div>
         )}
       </div>
       <Dialog
         open={open}
         onOpenChange={setOpen}
-        title={`Decline the swap for ${row.worker}?`}
-        description="Your reason is logged. The worker keeps tonight's work with the controls in the permit."
+        title={`Keep ${row.worker} on ${row.activity.toLowerCase()}?`}
+        description="Your reason is logged. The worker stays on tonight's work with the controls in the permit."
         footer={
           <>
             <Button variant="ghost" onClick={() => setOpen(false)}>
@@ -280,10 +331,10 @@ function Recommendation({ row }: { row: RosterRow }) {
             <Button
               variant="danger"
               disabled={!reason.trim()}
-              busy={decline.isPending}
-              onClick={() => decline.mutate({ reason: reason.trim() }, { onSuccess: () => { setOpen(false); toast({ title: "Swap declined", tone: "neutral" }); } })}
+              busy={keep.isPending}
+              onClick={() => keep.mutate({ reason: reason.trim() }, { onSuccess: () => { setOpen(false); toast({ title: "Kept with controls", body: "Logged with your reason.", tone: "neutral" }); } })}
             >
-              Decline swap
+              Keep with controls
             </Button>
           </>
         }

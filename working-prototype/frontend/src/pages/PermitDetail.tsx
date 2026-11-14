@@ -29,7 +29,7 @@ type Permit = {
   issuer: string | null;
   vessel: string | null;
   forecast: { peak_wbgt: number | null; heat_tier: number | null };
-  people_factor: { crew_size: number; readiness: Record<Tier, number>; crew_status: "green" | "amber" | "red"; open_reassignments: number; top_drivers: string[]; confidence: number | null; scored: boolean };
+  people_factor: { crew_size: number; readiness: Record<Tier, number>; crew_status: "green" | "amber" | "red" | "unscored"; open_reassignments: number; top_drivers: string[]; confidence: number | null; scored: boolean };
   conditions: { id: number; text: string; origin: string; status: string; warning_id: number | null }[];
   events: { id: number; at: string; kind: string; text: string; by: string | null }[];
 };
@@ -100,6 +100,7 @@ export function PermitDetail({ me }: { me: Me }) {
                     <dt>Top drivers</dt>
                     <dd>{p.people_factor.top_drivers.length ? p.people_factor.top_drivers.join("; ") : "None"}</dd>
                   </dl>
+                  {p.people_factor.crew_status === "unscored" && <p className="small" role="status">The planner has not scored this crew yet, so it cannot be signed.</p>}
                   {p.people_factor.crew_status === "red" && (
                     <p className="small" role="status">
                       This permit cannot be signed until the planner settles {p.people_factor.open_reassignments} open reassignment{p.people_factor.open_reassignments === 1 ? "" : "s"}.

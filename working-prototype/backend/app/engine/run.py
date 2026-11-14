@@ -3,6 +3,7 @@ re-score a planner starts. Each run scores every graded assignment on the shift 
 proposes swaps within the alert budget."""
 
 from collections import Counter
+from datetime import timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -13,7 +14,8 @@ from app.engine.crew_rules import check_crew_rules
 from app.engine.score import ScoreResult, score
 from app.engine.swaps import crews_from, propose_swaps
 from app.engine.weights import load_weights
-from app.models import Activity, Assignment, AssignmentScore, Person, ScoreRun
+from app.models import Activity, Assignment, AssignmentScore, Person, ScoreRun, Shift
+from app.models.roster import ShiftKind
 from app.models.scores import ConditionsSource, RunKind
 
 CACHE_PREFIXES = ("memberships", "group_rates", "control_rates")
@@ -131,4 +133,16 @@ def crew_breaches(results: list[ScoreResult]) -> list[dict[str, object]]:
 def latest_run(session: Session, shift_id: int) -> ScoreRun | None:
     return session.scalars(
         select(ScoreRun).where(ScoreRun.shift_id == shift_id).order_by(ScoreRun.id.desc())
+    ).first()
+
+
+# Site time is UTC+4 all year.
+SITE_OFFSET = timedelta(hours=4)
+
+
+def evening_shift(session: Session) -> Shift | None:
+    """Tomorrow night's shift, by the site's calendar: what the evening run scores."""
+    tomorrow = (site_now(session) + SITE_OFFSET).date() + timedelta(days=1)
+    return session.scalars(
+        select(Shift).where(Shift.date == tomorrow, Shift.kind == ShiftKind.NIGHT)
     ).first()

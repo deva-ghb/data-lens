@@ -13,4 +13,9 @@ export default tseslint.config(
     plugins: { "react-hooks": reactHooks },
     rules: { ...reactHooks.configs.recommended.rules },
   },
+  {
+    // Playwright helper scripts run in node and evaluate code in the page.
+    files: ["e2e/**/*.mjs"],
+    languageOptions: { globals: { ...globals.browser, ...globals.node } },
+  },
 );

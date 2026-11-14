@@ -37,10 +37,12 @@ export function Swaps() {
       </Loaded>
       <Card title="Recent decisions">
         <Loaded query={done}>
-          {(rows) => (
+          {(rows) => {
+            const decided = rows.filter((s) => ["approved", "rejected", "declined"].includes(s.status));
+            if (decided.length === 0) return <p className="small muted">No swaps decided yet for this shift.</p>;
+            return (
             <ul className="list">
-              {rows
-                .filter((s) => ["approved", "rejected", "declined"].includes(s.status))
+              {decided
                 .map((s) => (
                   <li key={s.id} className="row row--between">
                     <span className="small">
@@ -50,7 +52,8 @@ export function Swaps() {
                   </li>
                 ))}
             </ul>
-          )}
+            );
+          }}
         </Loaded>
       </Card>
     </Page>

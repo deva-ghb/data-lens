@@ -39,7 +39,7 @@ export function People() {
             title={`${data.total} people`}
             actions={
               <div className="row">
-                <Input aria-label="Search people" placeholder="Search name or email" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} style={{ width: 240 }} />
+                <Input aria-label="Search people" placeholder="Search name or email" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} className="filter-input" />
                 <Select aria-label="Role" value={role} onValueChange={(v) => { setRole(v); setPage(1); }} options={[{ value: "all", label: "All roles" }, ...ROLES]} />
               </div>
             }

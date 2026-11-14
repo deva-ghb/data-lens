@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, apiGet, apiSend } from "./client";
+import { ApiError, apiGet, apiSend, shouldRetry } from "./client";
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -128,5 +128,19 @@ describe("apiSend", () => {
       status: 409,
       code: "invalid_state",
     });
+  });
+});
+
+describe("shouldRetry", () => {
+  it("never retries an answer the server meant, like not found or forbidden", () => {
+    expect(shouldRetry(0, new ApiError(404, "not_found", "x"))).toBe(false);
+    expect(shouldRetry(0, new ApiError(403, "forbidden", "x"))).toBe(false);
+    expect(shouldRetry(0, new ApiError(422, "invalid_input", "x"))).toBe(false);
+  });
+
+  it("retries a server or network failure at most twice", () => {
+    expect(shouldRetry(0, new ApiError(503, "unavailable", "x"))).toBe(true);
+    expect(shouldRetry(1, new TypeError("Failed to fetch"))).toBe(true);
+    expect(shouldRetry(2, new ApiError(500, "error", "x"))).toBe(false);
   });
 });

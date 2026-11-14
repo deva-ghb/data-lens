@@ -24,10 +24,9 @@ export function SiteClock() {
   const set = (utc: string) => save.mutate({ now: `${utc}:00` }, { onSuccess: () => toast({ title: "Site clock moved", tone: "good" }) });
   return (
     <Page title="Site clock" subtitle="Every time rule in the app reads this clock: shifts, tier expiry, feed freshness and due dates. It stays where it is until you move it.">
-      <div className="grid grid--2">
-        <Card title="Now on site">
-          <p className="build__r num" style={{ fontSize: 32, fontWeight: 600 }}>{meta.data ? siteTime(meta.data.site_now_local) : "…"}</p>
-          <p className="small muted">Abu Dhabi time (UTC+4)</p>
+      <div className="grid grid--2 grid--top">
+        <Card title="Now on site" subtitle="Abu Dhabi time (UTC+4)">
+          <p className="clock-now num">{meta.data ? siteTime(meta.data.site_now_local) : "…"}</p>
         </Card>
         <Card title="Move the clock">
           <div className="stack">

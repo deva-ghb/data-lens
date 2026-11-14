@@ -5,7 +5,7 @@ import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Table, type Column } from "../ui/Table";
 import { useToast } from "../ui/Toast";
-import { Loaded, titleCase } from "./common";
+import { Loaded, shortDate, titleCase } from "./common";
 import "./pages.css";
 
 type Action = { id: number; title: string; control_level: string; owner: string; owner_id: number; due_on: string; status: string; effectiveness_check_on: string | null; effective: boolean | null; source_kind: string; source_id: number };
@@ -17,7 +17,7 @@ export function Actions({ me }: { me: Me }) {
     { key: "level", header: "Control", render: (a) => <span className={`pill pill--${LEVEL_TINT[a.control_level]}`}>{a.control_level === "ppe" ? "Protective equipment" : titleCase(a.control_level)}</span>, width: 170 },
     { key: "title", header: "Action", render: (a) => <span className="small">{a.title}</span> },
     { key: "owner", header: "Owner", render: (a) => a.owner, width: 150 },
-    { key: "due", header: "Due", render: (a) => <span className="num">{a.due_on}</span>, width: 110 },
+    { key: "due", header: "Due", render: (a) => <span className="num">{shortDate(a.due_on)}</span>, width: 110 },
     { key: "check", header: "Effectiveness check", render: (a) => (a.effective === null ? <span className="small muted">{a.effectiveness_check_on ?? "Not set"}</span> : <span className={a.effective ? "pill pill--mint" : "pill pill--rose"}>{a.effective ? "Worked" : "Did not work"}</span>), width: 170 },
     { key: "status", header: "Status", render: (a) => <ActionStatus action={a} me={me} />, width: 180 },
   ];

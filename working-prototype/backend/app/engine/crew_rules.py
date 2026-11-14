@@ -33,17 +33,25 @@ def check_crew_rules(crew: list[CrewMember], heat_tier: int) -> list[RuleBreach]
         breaches.append(
             RuleBreach(
                 "controls_share",
-                f"{on_controls} of {len(crew)} on extra controls in heat tier {heat_tier}; "
-                "the limit is a quarter of the crew",
+                f"{on_controls} of {len(crew)} on extra controls; "
+                f"in heat tier {heat_tier} at most a quarter of a high-hazard crew "
+                "may be on extra controls",
             )
         )
     arrivals = sum(1 for m in crew if m.acclimatisation_days < 7)
     if arrivals > 2:
         breaches.append(
-            RuleBreach("arrivals_cap", f"{arrivals} arrivals under 7 days; the cap is 2 per gang")
+            RuleBreach(
+                "arrivals_cap",
+                f"{arrivals} arrived under 7 days ago; at most 2 recent arrivals per gang",
+            )
         )
     if high_hazard and not any(m.group_code in EXPERIENCED_GROUPS for m in crew):
         breaches.append(
-            RuleBreach("experienced_present", "No experienced worker on this high-hazard task")
+            RuleBreach(
+                "experienced_present",
+                "No experienced worker; every high-hazard crew needs "
+                "at least one experienced worker",
+            )
         )
     return breaches
