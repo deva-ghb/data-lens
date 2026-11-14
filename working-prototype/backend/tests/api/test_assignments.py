@@ -14,7 +14,16 @@ def test_planner_sees_reason_not_diagnosis(api) -> None:  # type: ignore[no-unty
     assert row["r"] == 1.94
     assert "Third night in a row" in row["reason"] or "night" in row["reason"].lower()
     blob = str(roster).lower()
-    for word in ("creatinine", "lab result", "lab panel", "diagnos", "nationality", "group_code", "new_contractor", "training path"):
+    for word in (
+        "creatinine",
+        "lab result",
+        "lab panel",
+        "diagnos",
+        "nationality",
+        "group_code",
+        "new_contractor",
+        "training path",
+    ):
         assert word not in blob
     assert roster["tier_counts"]["reassign"] == 3
     assert roster["budget"]["shown"] == 3
