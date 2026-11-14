@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # working-prototype/.env, two levels above this file's package directory.
@@ -26,6 +26,14 @@ class Settings(BaseSettings):
     ai_text_model: str = "gpt-6-luna"
     ai_decisions_model: str = "gpt-6-luna"
     jwt_secret: str = Field(default=DEFAULT_DEV_JWT_SECRET, validation_alias="DATALENS_JWT_SECRET")
+
+    @field_validator("azure_openai_endpoint", "azure_openai_api_key", mode="before")
+    @classmethod
+    def _blank_is_unset(cls, value: object) -> object:
+        """An empty or blank value in .env means "not configured", not an empty string."""
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
     @property
     def azure_v1_base(self) -> str | None:
