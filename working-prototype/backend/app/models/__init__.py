@@ -10,7 +10,7 @@ from app.models.actions import (
     InspectionStatus,
 )
 from app.models.activities import Activity, ActivityHazard, Hazard, SwpItem
-from app.models.ai import AiDraft, AiDraftStatus, AiImage
+from app.models.ai import AiDecision, AiDraft, AiDraftStatus, AiImage
 from app.models.feeds import (
     CampTicket,
     ClinicVisit,
@@ -93,6 +93,7 @@ __all__ = [
     "ActionStatus",
     "Activity",
     "ActivityHazard",
+    "AiDecision",
     "AiDraft",
     "AiDraftStatus",
     "AiImage",

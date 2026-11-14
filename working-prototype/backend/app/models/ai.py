@@ -52,3 +52,17 @@ class AiImage(Base):
     model: Mapped[str] = mapped_column(String(64))
     prompt: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime]
+
+
+class AiDecision(Base):
+    """Typed answers from the Decisions API (probabilities, choices, scores) with provenance."""
+
+    __tablename__ = "ai_decisions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    subject_kind: Mapped[str] = mapped_column(String(32))
+    subject_id: Mapped[int] = mapped_column(index=True)
+    model: Mapped[str] = mapped_column(String(64))
+    questions_json: Mapped[list[Any]]
+    answers_json: Mapped[list[Any]]
+    created_at: Mapped[datetime]

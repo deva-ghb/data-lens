@@ -83,6 +83,8 @@ EXPECTED_TABLES = {
     "contests",
     # vessels (revision 0002)
     "vessel_calls",
+    # ai decisions (revision 0004)
+    "ai_decisions",
 }
 
 PROTECTED_WORDS = ("nationality", "religion", "ethnicity", "origin")
