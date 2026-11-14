@@ -1,4 +1,5 @@
 import { EyeOff } from "lucide-react";
+import { useRef, useState, type KeyboardEvent } from "react";
 import "../ui.css";
 import { SEQUENTIAL, SEQUENTIAL_INK, defaultFormat } from "./chartKit";
 
@@ -37,12 +38,48 @@ export function HeatGrid({
   const min = domain?.[0] ?? (flat.length > 0 ? Math.min(...flat) : 0);
   const max = domain?.[1] ?? (flat.length > 0 ? Math.max(...flat) : 1);
 
+  // One tab stop for the whole grid; arrow keys, Home and End move between cells.
+  const [focus, setFocus] = useState<[number, number]>([0, 0]);
+  const cellRefs = useRef(new Map<string, HTMLSpanElement>());
+  const lastRow = Math.max(0, rows.length - 1);
+  const lastCol = Math.max(0, columns.length - 1);
+  const [focusRow, focusCol] = [Math.min(focus[0], lastRow), Math.min(focus[1], lastCol)];
+
+  const move = (event: KeyboardEvent<HTMLDivElement>) => {
+    const moves: Record<string, [number, number]> = {
+      ArrowRight: [focusRow, Math.min(lastCol, focusCol + 1)],
+      ArrowLeft: [focusRow, Math.max(0, focusCol - 1)],
+      ArrowDown: [Math.min(lastRow, focusRow + 1), focusCol],
+      ArrowUp: [Math.max(0, focusRow - 1), focusCol],
+      Home: [focusRow, 0],
+      End: [focusRow, lastCol],
+    };
+    const next = moves[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    setFocus(next);
+    cellRefs.current.get(`${next[0]}-${next[1]}`)?.focus();
+  };
+
+  const cellProps = (r: number, c: number, name: string) => ({
+    ref: (element: HTMLSpanElement | null) => {
+      if (element === null) cellRefs.current.delete(`${r}-${c}`);
+      else cellRefs.current.set(`${r}-${c}`, element);
+    },
+    role: "gridcell",
+    "aria-label": name,
+    title: name,
+    tabIndex: r === focusRow && c === focusCol ? 0 : -1,
+    onFocus: () => setFocus([r, c]),
+  });
+
   return (
     <div className="dl-chart dl-heat">
       <div
         className="dl-heat__grid"
-        role="table"
+        role="grid"
         aria-label={label}
+        onKeyDown={move}
         style={{ gridTemplateColumns: `auto repeat(${columns.length}, minmax(var(--heat-cell-min, 64px), 1fr))` }}
       >
         <div role="row" style={{ display: "contents" }}>
@@ -66,13 +103,13 @@ export function HeatGrid({
                 return (
                   <span
                     key={key}
-                    role="cell"
-                    tabIndex={0}
+                    {...cellProps(r, c, `${row}, ${column}: hidden`)}
                     className="dl-heat__cell dl-heat__cell--hidden"
-                    title={`${row}, ${column}: hidden`}
                   >
                     <EyeOff className="dl-heat__hidden-icon" aria-hidden="true" />
-                    <span className="dl-heat__hidden-word">{hiddenText}</span>
+                    <span className="dl-heat__hidden-word" aria-hidden="true">
+                      {hiddenText}
+                    </span>
                   </span>
                 );
               }
@@ -80,10 +117,8 @@ export function HeatGrid({
               return (
                 <span
                   key={key}
-                  role="cell"
-                  tabIndex={0}
+                  {...cellProps(r, c, `${row}, ${column}: ${text}`)}
                   className="dl-heat__cell"
-                  title={`${row}, ${column}: ${text}`}
                   style={{
                     background: SEQUENTIAL[step],
                     color: SEQUENTIAL_INK[step],

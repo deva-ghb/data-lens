@@ -23,6 +23,21 @@ const ToastContext = createContext<((toast: ToastInput) => void) | null>(null);
 const TONE_ICON = { good: CircleCheck, warning: TriangleAlert, critical: CircleAlert, neutral: Info };
 
 const DISMISS_AFTER_MS = 5000;
+const MAX_VISIBLE = 3;
+
+/**
+ * Adds a toast, making room by dropping the oldest confirmations first.
+ * Problem toasts are never dropped; they stay until a person dismisses them.
+ */
+function withRoomFor(current: ToastEntry[], next: ToastEntry): ToastEntry[] {
+  const list = [...current, next];
+  while (list.length > MAX_VISIBLE) {
+    const oldest = list.findIndex((toast) => toast.tone !== "critical");
+    if (oldest < 0) break;
+    list.splice(oldest, 1);
+  }
+  return list;
+}
 
 function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: number) => void }) {
   const tone = toast.tone ?? "neutral";
@@ -66,7 +81,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const show = useCallback((toast: ToastInput) => {
     const id = nextId.current;
     nextId.current += 1;
-    setToasts((current) => [...current.slice(-2), { ...toast, id }]);
+    setToasts((current) => withRoomFor(current, { ...toast, id }));
   }, []);
 
   const value = useMemo(() => show, [show]);

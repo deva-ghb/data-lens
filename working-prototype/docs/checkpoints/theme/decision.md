@@ -66,10 +66,10 @@ Readiness tiers always pair the colour with an icon and a plain label, so colour
 
 | Tier | Label | Colour |
 |---|---|---|
-| fit | Fit for duty | Mint (good) |
-| fit_with_controls | Fit with extra controls | Amber (warning) |
+| fit | Fit | Mint (good) |
+| fit_with_controls | Fit with controls | Amber (warning) |
 | reassign | Reassign today | Red (critical) |
-| refer | Refer to clinic | Lilac |
+| refer | Refer | Lilac |
 | unknown | Unknown | Neutral grey |
 
 ## Contrast check

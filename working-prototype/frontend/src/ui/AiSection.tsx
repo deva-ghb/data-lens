@@ -34,7 +34,15 @@ function confidenceWord(confidence: number): string {
   return "Low";
 }
 
-export function AiSection({
+/**
+ * The text box starts from the draft, so a different draft (a new record, or a
+ * retry that now has text) must start a fresh editor rather than keep old text.
+ */
+export function AiSection(props: AiSectionProps) {
+  return <AiSectionBody key={`${props.draft.id}:${props.draft.status}`} {...props} />;
+}
+
+function AiSectionBody({
   draft,
   onConfirm,
   onEdit,

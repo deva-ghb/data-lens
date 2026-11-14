@@ -1442,6 +1442,7 @@
 }
 
 .dl-heat__cell--hidden {
+  gap: var(--space-half);
   background: repeating-linear-gradient(
     135deg,
     var(--tint-neutral-fill) 0 6px,
@@ -1573,9 +1574,6 @@
     min-width: 0;
   }
 
-  .dl-heat__cell .dl-heat__hidden-icon {
-    display: block;
-  }
 
   .dl-heat__hidden-word {
     position: absolute;
@@ -1597,7 +1595,7 @@
 }
 
 .dl-heat__hidden-icon {
-  display: none;
+  flex: none;
   width: var(--icon-sm);
   height: var(--icon-sm);
 }

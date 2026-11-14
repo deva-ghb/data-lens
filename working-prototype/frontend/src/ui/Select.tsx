@@ -34,7 +34,8 @@ export function Select({
 }: SelectProps) {
   return (
     <RadixSelect.Root
-      value={value === "" ? undefined : value}
+      // Always controlled: "" shows the placeholder, so a parent can clear the choice.
+      value={value ?? ""}
       onValueChange={onValueChange}
       disabled={disabled}
       name={name}

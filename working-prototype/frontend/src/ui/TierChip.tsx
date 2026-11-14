@@ -12,10 +12,10 @@ type TierLook = {
 };
 
 export const TIER_LOOK: Record<Tier, TierLook> = {
-  fit: { label: "Fit for duty", tone: "good", Icon: CircleCheck },
-  fit_with_controls: { label: "Fit with extra controls", tone: "warning", Icon: ShieldCheck },
+  fit: { label: "Fit", tone: "good", Icon: CircleCheck },
+  fit_with_controls: { label: "Fit with controls", tone: "warning", Icon: ShieldCheck },
   reassign: { label: "Reassign today", tone: "critical", Icon: ArrowLeftRight },
-  refer: { label: "Refer to clinic", tone: "lilac", Icon: Stethoscope },
+  refer: { label: "Refer", tone: "lilac", Icon: Stethoscope },
   unknown: { label: "Unknown", tone: "neutral", Icon: CircleHelp },
 };
 
