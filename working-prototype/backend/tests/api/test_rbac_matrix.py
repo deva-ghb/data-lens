@@ -101,6 +101,7 @@ EXPECTED: dict[tuple[str, str], frozenset[str]] = {
     ("POST", "/api/inspections/{inspection_id}/checks/{check_id}"): frozenset({F, H}),
     ("GET", "/api/actions"): frozenset({F, P, H, C}),
     ("POST", "/api/actions"): frozenset({H}),
+    ("GET", "/api/action-owners"): frozenset({H}),
     ("GET", "/api/learning"): frozenset({F, H, C}),
     ("POST", "/api/learning/{item_id}/publish"): frozenset({H}),
     ("GET", "/api/learning/mine"): ALL,

@@ -1,14 +1,15 @@
-import { ArrowLeft, ClipboardCheck, FilePlus2, PenLine, Sparkles } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, FilePlus2, PenLine, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toDraft, useGet, useSend, type ApiDraft } from "../api/hooks";
 import type { Me, Role } from "../auth/useMe";
 import { Page } from "../layout/AppShell";
-import { localTime } from "../layout/Meta";
+import { localTime, useMeta } from "../layout/Meta";
 import { AiSection } from "../ui/AiSection";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Dialog } from "../ui/Dialog";
+import { Field, Input } from "../ui/Field";
 import { Select } from "../ui/Select";
 import { TextArea } from "../ui/TextArea";
 import { useToast } from "../ui/Toast";
@@ -77,8 +78,12 @@ export function WarningRecord({ me }: { me: Me }) {
                 )}
               </Card>
               <VerifyCard w={w} canAct={me.role === "hse_head" && w.status === "open"} />
-              <Card title="Actions" subtitle="Ranked by the hierarchy of controls">
-                {w.actions.length === 0 ? <p className="small muted">No actions yet. They are created from step 7.</p> : (
+              <Card
+                title="Actions"
+                subtitle="Ranked by the hierarchy of controls"
+                actions={me.role === "hse_head" && w.status === "open" ? <AddAction warningId={w.id} /> : undefined}
+              >
+                {w.actions.length === 0 ? <p className="small muted">No actions yet. Add them once the controls in step 7 are agreed.</p> : (
                   <ul className="list">
                     {w.actions.map((a) => (
                       <li key={a.id} className="stack stack--tight">
@@ -213,6 +218,75 @@ function VerifyCard({ w, canAct }: { w: Record_; canAct: boolean }) {
         </div>
       )}
     </Card>
+  );
+}
+
+const LEVELS = [
+  { value: "eliminate", label: "Eliminate", hint: "Remove the hazard" },
+  { value: "substitute", label: "Substitute", hint: "Swap for something less hazardous" },
+  { value: "engineer", label: "Engineer", hint: "Change the equipment or the place" },
+  { value: "administrative", label: "Administrative", hint: "Change how the work is organised" },
+  { value: "ppe", label: "Protective equipment", hint: "The last line of defence" },
+];
+
+/** "2026-07-29" plus some days, as a date string. */
+function addDays(isoDate: string, days: number): string {
+  const d = new Date(`${isoDate}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function AddAction({ warningId }: { warningId: number }) {
+  const [open, setOpen] = useState(false);
+  const meta = useMeta();
+  const owners = useGet<{ id: number; name: string; job: string }[]>("/api/action-owners", { enabled: open });
+  const today = meta.data?.site_now_local.slice(0, 10) ?? "2026-07-28";
+  const [title, setTitle] = useState("");
+  const [level, setLevel] = useState<string>();
+  const [owner, setOwner] = useState<string>();
+  const [due, setDue] = useState(() => addDays(today, 7));
+  const [check, setCheck] = useState(() => addDays(today, 21));
+  const create = useSend<{ source_kind: string; source_id: number; title: string; control_level: string; owner_id: number; due_on: string; effectiveness_check_on: string }>("POST", "/api/actions");
+  const toast = useToast();
+  const ready = title.trim() && level && owner && due && check;
+  return (
+    <>
+      <Button size="sm" variant="secondary" icon={<Plus />} onClick={() => setOpen(true)}>Add action</Button>
+      <Dialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Add an action"
+        description="Each action has an owner, a due date and a date to check that it worked."
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button
+              variant="primary"
+              disabled={!ready}
+              busy={create.isPending}
+              onClick={() =>
+                create.mutate(
+                  { source_kind: "warning", source_id: warningId, title: title.trim(), control_level: level!, owner_id: Number(owner), due_on: due, effectiveness_check_on: check },
+                  { onSuccess: () => { setOpen(false); setTitle(""); toast({ title: "Action added", tone: "good" }); }, onError: (e) => toast({ title: "Not added", body: e.message, tone: "critical" }) },
+                )
+              }
+            >
+              Add action
+            </Button>
+          </>
+        }
+      >
+        <div className="stack">
+          <Field label="What will be done">{(p) => <Input {...p} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="For example: repair the cooling units in Camp Block C" />}</Field>
+          <Field label="Level">{(p) => <Select {...p} value={level} onValueChange={setLevel} placeholder="Choose a level" options={LEVELS} />}</Field>
+          <Field label="Owner">{(p) => <Select {...p} value={owner} onValueChange={setOwner} placeholder="Choose an owner" options={(owners.data ?? []).map((o) => ({ value: String(o.id), label: o.name, hint: o.job }))} />}</Field>
+          <div className="grid grid--2">
+            <Field label="Due">{(p) => <Input {...p} type="date" value={due} onChange={(e) => setDue(e.target.value)} />}</Field>
+            <Field label="Check it worked on">{(p) => <Input {...p} type="date" value={check} onChange={(e) => setCheck(e.target.value)} />}</Field>
+          </div>
+        </div>
+      </Dialog>
+    </>
   );
 }
 

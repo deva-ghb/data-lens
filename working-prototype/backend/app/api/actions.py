@@ -75,6 +75,30 @@ def actions(
     return [_out(session, a) for a in rows]
 
 
+OWNER_ROLES = ("foreman", "planner", "shift_manager", "permit_issuer", "hse_head", "clinician")
+
+
+@router.get("/action-owners")
+def action_owners(
+    session: SessionDep, user: Person = Depends(require_role("hse_head"))
+) -> list[dict[str, Any]]:
+    """The people an action can be given to: those who run the site, never a worker."""
+    people = session.scalars(
+        select(Person)
+        .where(Person.role.in_(OWNER_ROLES), Person.active.is_(True))
+        .order_by(Person.first_name, Person.last_name)
+    )
+    return [
+        {
+            "id": p.id,
+            "name": f"{p.first_name} {p.last_name}",
+            "role": p.role.value,
+            "job": p.job_title,
+        }
+        for p in people
+    ]
+
+
 class ActionBody(BaseModel):
     source_kind: str
     source_id: int

@@ -37,7 +37,6 @@ const ForemanHome = lazy(() => import("./pages/phone/ForemanHome").then((m) => (
 const PhoneReport = lazy(() => import("./pages/phone/PhoneReport").then((m) => ({ default: m.PhoneReport })));
 const Cards = lazy(() => import("./pages/phone/Cards").then((m) => ({ default: m.Cards })));
 
-const Kit = import.meta.env.DEV ? lazy(() => import("./pages/Kit")) : null;
 
 function Loading() {
   return (
@@ -96,16 +95,6 @@ export function App() {
       <Route path="/m/foreman" element={<Signed phone>{() => <ForemanHome />}</Signed>} />
       <Route path="/m/report" element={<Signed phone>{() => <PhoneReport />}</Signed>} />
       <Route path="/m/cards" element={<Signed phone>{() => <Cards />}</Signed>} />
-      {Kit !== null && (
-        <Route
-          path="/kit"
-          element={
-            <Suspense fallback={null}>
-              <Kit />
-            </Suspense>
-          }
-        />
-      )}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

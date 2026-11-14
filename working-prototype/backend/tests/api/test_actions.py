@@ -81,3 +81,14 @@ def test_worker_reads_a_card(api) -> None:  # type: ignore[no-untyped-def]
     cards = worker.get("/api/learning/mine").json()
     assert cards
     assert worker.post(f"/api/learning/{cards[0]['id']}/read", json={}).status_code == 200
+
+
+def test_action_owners_are_named_staff_not_workers(api) -> None:  # type: ignore[no-untyped-def]
+    """The HSE head picks an action's owner from the people who run the site."""
+    owners = api.as_user("layla.haddad").get("/api/action-owners")
+    assert owners.status_code == 200
+    roles = {o["role"] for o in owners.json()}
+    names = {o["name"] for o in owners.json()}
+    assert "worker" not in roles and "authority" not in roles
+    assert {"Daniel Mensah", "Joseph Kariuki"} <= names
+    assert api.as_user("daniel.mensah").get("/api/action-owners").status_code == 403
