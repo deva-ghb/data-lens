@@ -211,8 +211,8 @@ def add_visit(
 def _clinic_visits(ctx: Ctx, peak_wbgt: dict[date, float]) -> None:
     """Daily visits per resident. Heat visits follow the day's peak WBGT.
 
-    Camp Block C's located heat visits in July are fixed at one a day, so the injected
-    cooling failure (one extra a day from 25 July) reads as about double the usual.
+    Camp Block C's located heat visits from 27 June are fixed at two a day, so the injected
+    cooling failure (two extra a day from 25 July) reads as double the usual.
     """
     rates = {
         "respiratory": 0.0035,
@@ -237,8 +237,9 @@ def _clinic_visits(ctx: Ctx, peak_wbgt: dict[date, float]) -> None:
                     at = noon + timedelta(minutes=int(ctx.rng.integers(0, 600)))
                     add_visit(ctx, ctx.pick(people), home, at, syndrome)
             if home == "Camp Block C" and day >= date(2026, 6, 27):
-                at = noon + timedelta(minutes=int(ctx.rng.integers(0, 600)))
-                add_visit(ctx, ctx.pick(people), home, at, "heat", located=True)
+                for _ in range(2):
+                    at = noon + timedelta(minutes=int(ctx.rng.integers(0, 600)))
+                    add_visit(ctx, ctx.pick(people), home, at, "heat", located=True)
 
 
 def _camp_tickets(ctx: Ctx) -> None:

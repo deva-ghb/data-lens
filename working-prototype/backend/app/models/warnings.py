@@ -2,6 +2,7 @@
 
 import enum
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import CheckConstraint, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
@@ -44,6 +45,8 @@ class WarningRecord(Base):
     # Null until the warning is closed and judged.
     outcome: Mapped[WarningOutcome | None]
     closed_at: Mapped[datetime | None]
+    # What the detector saw when it opened the record: signals, ratios, classes, late feeds.
+    evidence_json: Mapped[dict[str, Any] | None]
 
 
 class WarningStep(Base):

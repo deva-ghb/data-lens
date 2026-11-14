@@ -9,7 +9,15 @@ how the back-test sees false alarms.
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
-from app.models import Absence, CampTicket, CheckIn, FeedReading, Incident, NearMiss
+from app.models import (
+    Absence,
+    CampTicket,
+    CheckIn,
+    FeedReading,
+    HazardReport,
+    Incident,
+    NearMiss,
+)
 from app.models.records import IncidentKind, RecordStatus
 from app.models.roster import Feeling, ShiftKind
 from seed.context import Ctx
@@ -41,7 +49,7 @@ INJECTED_EVENTS = [
         "E2_NIGHT_FATIGUE",
         "Berth 3",
         datetime(2026, 6, 8),
-        datetime(2026, 6, 15, 20),
+        datetime(2026, 6, 16, 2),
         ("SAFETY_REPORTS", "CHECKINS"),
         True,
         "Night lashing fatigue: three near misses and a run of tired check-ins at Berth 3.",
@@ -59,7 +67,7 @@ INJECTED_EVENTS = [
         "E4_CAMP_C_COOLING",
         "Camp Block C",
         datetime(2026, 7, 24),
-        datetime(2026, 7, 30, 20),
+        datetime(2026, 7, 30, 22),
         ("CAMP_TICKETS", "CLINIC_VISITS"),
         False,
         "Camp Block C: 11 of 40 cooling units down, heat visits at the clinic about double.",
@@ -129,6 +137,15 @@ def _e2_night_fatigue(ctx: Ctx) -> None:
             potential_severity=5,
             status=RecordStatus.CLOSED,
         )
+    ctx.add(
+        HazardReport,
+        activity_id=lash,
+        zone_id=ctx.zone_id["Berth 3"],
+        reported_by=None,
+        at=datetime(2026, 6, 10, 22),
+        text="Rung loose on the lashing platform ladder at bay 22; crew are rushing past it.",
+        status=RecordStatus.CLOSED,
+    )
     _tired_run(
         ctx,
         {"Deck Gang 4", "Deck Gang 7"},
@@ -153,6 +170,15 @@ def _e3_plant(ctx: Ctx) -> None:
             potential_severity=5,
             status=RecordStatus.CLOSED,
         )
+    ctx.add(
+        HazardReport,
+        activity_id=rs,
+        zone_id=ctx.zone_id["Yard Block 2"],
+        reported_by=None,
+        at=datetime(2026, 7, 3, 11),
+        text="Convex mirror at the row 9 crossing is broken; tractors are entering blind.",
+        status=RecordStatus.CLOSED,
+    )
     _tired_run(ctx, {"Yard Gang 2", "Yard Gang 8"}, date(2026, 7, 1), date(2026, 7, 5), None, 0.4)
     ctx.add(
         Incident,
@@ -212,8 +238,8 @@ def _e4_camp_c(ctx: Ctx) -> None:
         or r["closed_at"] is None
     ]
     homes = residents(ctx)["Camp Block C"]
-    for offset in range(4):
-        day = datetime(2026, 7, 25, 6) + timedelta(days=offset)
+    for offset in range(8):
+        day = datetime(2026, 7, 25, 6) + timedelta(days=offset // 2)
         add_visit(
             ctx,
             ctx.pick(homes),
