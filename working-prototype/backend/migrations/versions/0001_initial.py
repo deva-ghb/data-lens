@@ -200,7 +200,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_feed_readings'))
     )
     with op.batch_alter_table('feed_readings', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_feed_readings_feed_id_at'), ['feed_id', 'at'], unique=False)
+        batch_op.create_index(batch_op.f('ix_feed_readings_feed_id_zone_id_at'), ['feed_id', 'zone_id', 'at'], unique=False)
         batch_op.create_index(batch_op.f('ix_feed_readings_zone_id'), ['zone_id'], unique=False)
 
     op.create_table('inspections',
@@ -359,7 +359,7 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_clinic_visits_at'), ['at'], unique=False)
         batch_op.create_index(batch_op.f('ix_clinic_visits_clinic_id'), ['clinic_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_clinic_visits_person_id'), ['person_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_clinic_visits_zone_id'), ['zone_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_clinic_visits_zone_id_at'), ['zone_id', 'at'], unique=False)
 
     op.create_table('fitness_outcomes',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -509,7 +509,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_observations'))
     )
     with op.batch_alter_table('observations', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_observations_activity_id'), ['activity_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_observations_activity_id_at'), ['activity_id', 'at'], unique=False)
         batch_op.create_index(batch_op.f('ix_observations_at'), ['at'], unique=False)
         batch_op.create_index(batch_op.f('ix_observations_person_id'), ['person_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_observations_zone_id'), ['zone_id'], unique=False)
@@ -615,13 +615,13 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['gang_id'], ['gangs.id'], name=op.f('fk_assignments_gang_id_gangs')),
     sa.ForeignKeyConstraint(['person_id'], ['people.id'], name=op.f('fk_assignments_person_id_people')),
     sa.ForeignKeyConstraint(['shift_id'], ['shifts.id'], name=op.f('fk_assignments_shift_id_shifts')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_assignments'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_assignments')),
+    sa.UniqueConstraint('shift_id', 'person_id', name=op.f('uq_assignments_shift_id_person_id'))
     )
     with op.batch_alter_table('assignments', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_assignments_activity_id'), ['activity_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_assignments_gang_id'), ['gang_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_assignments_person_id'), ['person_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_assignments_shift_id'), ['shift_id'], unique=False)
 
     op.create_table('permit_conditions',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -785,7 +785,6 @@ def downgrade() -> None:
 
     op.drop_table('permit_conditions')
     with op.batch_alter_table('assignments', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_assignments_shift_id'))
         batch_op.drop_index(batch_op.f('ix_assignments_person_id'))
         batch_op.drop_index(batch_op.f('ix_assignments_gang_id'))
         batch_op.drop_index(batch_op.f('ix_assignments_activity_id'))
@@ -825,7 +824,7 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_observations_zone_id'))
         batch_op.drop_index(batch_op.f('ix_observations_person_id'))
         batch_op.drop_index(batch_op.f('ix_observations_at'))
-        batch_op.drop_index(batch_op.f('ix_observations_activity_id'))
+        batch_op.drop_index(batch_op.f('ix_observations_activity_id_at'))
 
     op.drop_table('observations')
     with op.batch_alter_table('near_misses', schema=None) as batch_op:
@@ -871,7 +870,7 @@ def downgrade() -> None:
 
     op.drop_table('fitness_outcomes')
     with op.batch_alter_table('clinic_visits', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_clinic_visits_zone_id'))
+        batch_op.drop_index(batch_op.f('ix_clinic_visits_zone_id_at'))
         batch_op.drop_index(batch_op.f('ix_clinic_visits_person_id'))
         batch_op.drop_index(batch_op.f('ix_clinic_visits_clinic_id'))
         batch_op.drop_index(batch_op.f('ix_clinic_visits_at'))
@@ -922,7 +921,7 @@ def downgrade() -> None:
     op.drop_table('inspections')
     with op.batch_alter_table('feed_readings', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_feed_readings_zone_id'))
-        batch_op.drop_index(batch_op.f('ix_feed_readings_feed_id_at'))
+        batch_op.drop_index(batch_op.f('ix_feed_readings_feed_id_zone_id_at'))
 
     op.drop_table('feed_readings')
     with op.batch_alter_table('clinics', schema=None) as batch_op:

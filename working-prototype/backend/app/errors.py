@@ -103,10 +103,12 @@ def _http_exception_body(exc: StarletteHTTPException) -> dict[str, str]:
 
 
 def _field_name(location: tuple | list) -> str:
-    parts = [str(part) for part in location]
+    parts = list(location)
     if parts and parts[0] in _LOCATION_PREFIXES:
         parts = parts[1:]
-    return ".".join(parts)
+    # Integer parts are list positions (or the character offset of malformed JSON).
+    # They mean nothing to a person, so only named fields are reported.
+    return ".".join(part for part in parts if isinstance(part, str))
 
 
 def validation_message(exc: RequestValidationError) -> str:
@@ -120,7 +122,8 @@ def validation_message(exc: RequestValidationError) -> str:
     return "Please check these details: " + ", ".join(fields) + "."
 
 
-async def _handle_http_exception(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
+async def _handle_http_exception(_request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, StarletteHTTPException)
     return JSONResponse(
         status_code=exc.status_code,
         content=_http_exception_body(exc),
@@ -128,7 +131,8 @@ async def _handle_http_exception(_request: Request, exc: StarletteHTTPException)
     )
 
 
-async def _handle_validation_error(_request: Request, exc: RequestValidationError) -> JSONResponse:
+async def _handle_validation_error(_request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, RequestValidationError)
     return JSONResponse(
         status_code=422,
         content=error_body(INVALID_INPUT, validation_message(exc)),

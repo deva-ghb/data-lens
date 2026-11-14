@@ -3,7 +3,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, ForeignKey, String, Text
+from sqlalchemy import CheckConstraint, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -32,9 +32,12 @@ class IncidentKind(enum.StrEnum):
 
 class Observation(Base):
     __tablename__ = "observations"
+    # Serves "observations for an activity over a time window"; its first column also covers
+    # activity-only lookups.
+    __table_args__ = (Index(None, "activity_id", "at"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    activity_id: Mapped[int] = mapped_column(ForeignKey("activities.id"), index=True)
+    activity_id: Mapped[int] = mapped_column(ForeignKey("activities.id"))
     zone_id: Mapped[int] = mapped_column(ForeignKey("zones.id"), index=True)
     # The person observed, when the card names one.
     person_id: Mapped[int | None] = mapped_column(ForeignKey("people.id"), index=True)

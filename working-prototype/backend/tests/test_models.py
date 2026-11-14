@@ -250,3 +250,50 @@ def test_every_test_runs_on_a_fresh_temporary_database(session):
     committed = db.BACKEND_DIR / "data" / "datalens.db"
     assert db.engine.url.database != str(committed)
     assert session.execute(text("SELECT count(*) FROM employers")).scalar() == 0
+
+
+def _migrated_engine(tmp_path, name):
+    url = f"sqlite:///{tmp_path / name}"
+    upgrade_to_head(url)
+    return make_engine(url)
+
+
+def test_audit_log_triggers_exist_at_migration_head(tmp_path):
+    engine = _migrated_engine(tmp_path, "triggers.db")
+    try:
+        with engine.connect() as connection:
+            rows = connection.execute(
+                text("SELECT name, tbl_name FROM sqlite_master WHERE type = 'trigger'")
+            ).all()
+    finally:
+        engine.dispose()
+    assert {(row[0], row[1]) for row in rows} == {
+        ("audit_entries_no_update", "audit_entries"),
+        ("audit_entries_no_delete", "audit_entries"),
+    }
+
+
+@pytest.mark.parametrize(
+    ("table", "columns"),
+    [
+        ("feed_readings", ["feed_id", "zone_id", "at"]),
+        ("observations", ["activity_id", "at"]),
+        ("clinic_visits", ["zone_id", "at"]),
+    ],
+)
+def test_composite_indexes_exist_at_migration_head(tmp_path, table, columns):
+    engine = _migrated_engine(tmp_path, f"{table}.db")
+    try:
+        indexes = inspect(engine).get_indexes(table)
+    finally:
+        engine.dispose()
+    assert columns in [index["column_names"] for index in indexes]
+
+
+def test_assignment_is_unique_per_shift_and_person(tmp_path):
+    engine = _migrated_engine(tmp_path, "assignments.db")
+    try:
+        uniques = inspect(engine).get_unique_constraints("assignments")
+    finally:
+        engine.dispose()
+    assert ["shift_id", "person_id"] in [constraint["column_names"] for constraint in uniques]

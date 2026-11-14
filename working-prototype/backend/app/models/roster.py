@@ -45,10 +45,18 @@ class Gang(Base):
 
 
 class Assignment(Base):
+    """A person's place on one shift: one row per person per shift.
+
+    A swap updates the existing row in place (new activity and gang) and sets
+    `source` to "swap"; it never adds a second row for the same person and shift.
+    """
+
     __tablename__ = "assignments"
+    # The unique constraint also serves lookups by shift alone.
+    __table_args__ = (UniqueConstraint("shift_id", "person_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    shift_id: Mapped[int] = mapped_column(ForeignKey("shifts.id"), index=True)
+    shift_id: Mapped[int] = mapped_column(ForeignKey("shifts.id"))
     person_id: Mapped[int] = mapped_column(ForeignKey("people.id"), index=True)
     activity_id: Mapped[int] = mapped_column(ForeignKey("activities.id"), index=True)
     gang_id: Mapped[int | None] = mapped_column(ForeignKey("gangs.id"), index=True)

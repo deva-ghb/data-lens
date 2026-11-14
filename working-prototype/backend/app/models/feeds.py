@@ -44,7 +44,7 @@ class Feed(Base):
 
 class FeedReading(Base):
     __tablename__ = "feed_readings"
-    __table_args__ = (Index(None, "feed_id", "at"),)
+    __table_args__ = (Index(None, "feed_id", "zone_id", "at"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     feed_id: Mapped[int] = mapped_column(ForeignKey("feeds.id"))
@@ -58,11 +58,13 @@ class FeedReading(Base):
 
 class ClinicVisit(Base):
     __tablename__ = "clinic_visits"
+    # Serves "visits in a zone over a time window"; its first column also covers zone-only lookups.
+    __table_args__ = (Index(None, "zone_id", "at"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     clinic_id: Mapped[int] = mapped_column(ForeignKey("clinics.id"), index=True)
     person_id: Mapped[int] = mapped_column(ForeignKey("people.id"), index=True)
-    zone_id: Mapped[int] = mapped_column(ForeignKey("zones.id"), index=True)
+    zone_id: Mapped[int] = mapped_column(ForeignKey("zones.id"))
     at: Mapped[datetime] = mapped_column(index=True)
     syndrome: Mapped[str] = mapped_column(String(40))
 

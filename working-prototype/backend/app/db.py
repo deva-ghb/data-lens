@@ -13,7 +13,7 @@ running from another folder cannot create a second database.
 """
 
 import enum
-from collections.abc import Iterator
+from collections.abc import Generator
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
@@ -109,7 +109,7 @@ engine = make_engine(settings.database_url)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
-def get_session() -> Iterator[Session]:
+def get_session() -> Generator[Session]:
     session = SessionLocal()
     try:
         yield session

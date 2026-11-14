@@ -111,3 +111,32 @@ def test_unexpected_error_returns_contract_without_leaking_detail():
     assert_contract(body)
     assert body["code"] == "server_error"
     assert "internal detail" not in body["message"]
+
+
+def test_malformed_json_falls_back_to_the_generic_unreadable_message():
+    response = TestClient(make_app()).post(
+        "/login", content="{not json", headers={"Content-Type": "application/json"}
+    )
+    assert response.status_code == 422
+    body = response.json()
+    assert_contract(body)
+    assert body["code"] == "invalid_input"
+    assert body["message"] == (
+        "The details sent could not be read. Please check them and try again."
+    )
+
+
+def test_validation_message_skips_integer_location_parts():
+    class Item(BaseModel):
+        name: str
+
+    probe = FastAPI()
+    install_error_handlers(probe)
+
+    @probe.post("/items")
+    def items(body: list[Item]) -> int:
+        return len(body)
+
+    response = TestClient(probe).post("/items", json=[{"name": "a"}, {}])
+    assert response.status_code == 422
+    assert response.json()["message"] == "Please check these details: name."

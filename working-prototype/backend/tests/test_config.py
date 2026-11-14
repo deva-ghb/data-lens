@@ -15,7 +15,7 @@ def hermetic_environment(monkeypatch):
 
 
 def make_settings(**values) -> Settings:
-    return Settings(_env_file=None, **values)
+    return Settings(_env_file=None, **values)  # pyright: ignore[reportCallIssue]
 
 
 def test_azure_v1_base_is_derived_from_chat_completions_endpoint():
