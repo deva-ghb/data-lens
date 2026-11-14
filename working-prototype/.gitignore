@@ -1,0 +1,12 @@
+.env
+.superpowers/
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+video/footage*/
+video/build/
+frontend/dist/
+test-results/
+playwright-report/
+.DS_Store
