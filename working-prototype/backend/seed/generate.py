@@ -379,6 +379,11 @@ def _vessels_and_permits(ctx: Ctx) -> None:
         )
 
     issuer = ctx.key_person["priya.raman"]
+    crews_at = {
+        (d, k, zone_name, activity)
+        for worked in ctx.worked.values()
+        for d, k, zone_name, activity in worked
+    }
     seq: dict[tuple[date, str], int] = {}
     for day in roster_days():
         for kind in (ShiftKind.DAY, ShiftKind.NIGHT):
@@ -387,7 +392,10 @@ def _vessels_and_permits(ctx: Ctx) -> None:
             for name, zone, arrive, depart in calls:
                 if not (arrive < end and depart > start):
                     continue
-                for activity in ("LASH_DECK", "QC_OPS"):
+                for activity in ("LASH_DECK", "QC_OPS", "MOORING", "HOLD_CONFINED"):
+                    berth_name = next(n for n, i in ctx.zone_id.items() if i == zone)
+                    if (day, kind.value, berth_name, activity) not in crews_at:
+                        continue  # a permit only exists where a crew does that work
                     key = (day, kind.value)
                     seq[key] = seq.get(key, 0) + 1
                     number = f"PTW-{day:%y%m%d}-{kind.value[0].upper()}-{seq[key]:02d}"

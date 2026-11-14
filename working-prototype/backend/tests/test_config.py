@@ -63,3 +63,10 @@ def test_jwt_secret_reads_env_and_falls_back_to_dev_default(monkeypatch):
     fallback = make_settings().jwt_secret
     assert fallback == local_secret()
     assert fallback != "datalens-local-dev-secret-change-me"
+
+
+def test_project_env_file_wins_over_shell_variables(tmp_path, monkeypatch):
+    env_file = tmp_path / ".env"
+    env_file.write_text("AZURE_OPENAI_API_KEY=from-project-file\n")
+    monkeypatch.setenv("AZURE_OPENAI_API_KEY", "from-shell")
+    assert Settings(_env_file=env_file).azure_openai_api_key == "from-project-file"

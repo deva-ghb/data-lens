@@ -41,6 +41,8 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.ruff.lint.per-file-ignores]
 # Seed data files hold long sentences of synthetic record text.
 "seed/*" = ["E501"]
+# Tests carry long literal fixtures and descriptive names.
+"tests/*" = ["E501"]
 
 [tool.pyright]
 venvPath = "."

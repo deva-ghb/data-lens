@@ -2,7 +2,11 @@ import secrets
 from pathlib import Path
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 # working-prototype/.env, two levels above this file's package directory.
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
@@ -39,6 +43,19 @@ class Settings(BaseSettings):
     ai_text_model: str = "gpt-6-luna"
     ai_decisions_model: str = "gpt-6-luna"
     jwt_secret: str = Field(default_factory=local_secret, validation_alias="DATALENS_JWT_SECRET")
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """The project's own .env wins over variables exported in the user's shell, so a
+        key set for another project can never be sent to this one's endpoint."""
+        return (init_settings, dotenv_settings, env_settings, file_secret_settings)
 
     @field_validator("azure_openai_endpoint", "azure_openai_api_key", mode="before")
     @classmethod

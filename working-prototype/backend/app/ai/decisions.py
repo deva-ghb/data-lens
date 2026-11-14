@@ -82,6 +82,11 @@ class Decisions:
     def choice(self, name: str) -> str | None:
         return self.answers.get(name, {}).get("choice")
 
+    def probabilities(self, name: str) -> dict[str, float]:
+        """Each option's probability for a choice question."""
+        rows = self.answers.get(name, {}).get("probabilities") or []
+        return {str(r.get("value")): float(r.get("probability", 0)) for r in rows}
+
     def confidence(self, name: str) -> float | None:
         return self.answers.get(name, {}).get("confidence")
 
