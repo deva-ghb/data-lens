@@ -1,0 +1,39 @@
+[project]
+name = "datalens-backend"
+version = "0.1.0"
+description = "Data Lens working prototype backend"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy>=2",
+    "alembic",
+    "pydantic>=2",
+    "pydantic-settings",
+    "argon2-cffi",
+    "pyjwt",
+    "httpx",
+    "numpy",
+    "openai",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
