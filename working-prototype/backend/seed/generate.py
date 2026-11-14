@@ -53,6 +53,23 @@ def generate(session: Session, rng: np.random.Generator) -> None:
     records.generate_records(ctx)
     signals.generate_signals(ctx)
     events.inject(ctx)
+    session.add(
+        Setting(
+            key="injected_events",
+            value=[
+                {
+                    "code": e.code,
+                    "zone": e.zone,
+                    "signal_start": e.signal_start.isoformat(),
+                    "harm_at": e.harm_at.isoformat(),
+                    "signals": list(e.signals),
+                    "closed": e.closed,
+                    "summary": e.summary,
+                }
+                for e in events.INJECTED_EVENTS
+            ],
+        )
+    )
     _fix_story_checkins(ctx)
     ctx.flush_rows(*list(ctx.rows))
     signals.ingest_feeds(ctx)
