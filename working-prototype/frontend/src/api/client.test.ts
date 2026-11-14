@@ -57,6 +57,18 @@ describe("apiGet", () => {
     });
   });
 
+  it("throws ApiError invalid_response when a 2xx body is not valid JSON", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("<html>proxy page</html>", { status: 200 })),
+    );
+
+    const error = await apiGet("/api/health").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ status: 200, code: "invalid_response" });
+  });
+
   it("still throws ApiError when the error body is not JSON", async () => {
     vi.stubGlobal(
       "fetch",

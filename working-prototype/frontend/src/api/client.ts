@@ -21,15 +21,17 @@ function textField(source: Record<string, unknown>, key: string): string | undef
   return typeof value === "string" && value !== "" ? value : undefined;
 }
 
-async function readJson(response: Response): Promise<unknown> {
+type Body = { kind: "empty" } | { kind: "json"; value: unknown } | { kind: "invalid" };
+
+async function readBody(response: Response): Promise<Body> {
   const text = await response.text();
   if (text === "") {
-    return undefined;
+    return { kind: "empty" };
   }
   try {
-    return JSON.parse(text);
+    return { kind: "json", value: JSON.parse(text) };
   } catch {
-    return undefined;
+    return { kind: "invalid" };
   }
 }
 
@@ -53,11 +55,18 @@ function toApiError(response: Response, body: unknown): ApiError {
 
 async function request<T>(path: string, init: RequestInit): Promise<T> {
   const response = await fetch(path, { ...init, credentials: "include" });
-  const body = await readJson(response);
+  const body = await readBody(response);
   if (!response.ok) {
-    throw toApiError(response, body);
+    throw toApiError(response, body.kind === "json" ? body.value : undefined);
   }
-  return body as T;
+  if (body.kind === "invalid") {
+    throw new ApiError(
+      response.status,
+      "invalid_response",
+      "The service sent a reply that could not be read.",
+    );
+  }
+  return (body.kind === "json" ? body.value : undefined) as T;
 }
 
 export function apiGet<T>(path: string): Promise<T> {

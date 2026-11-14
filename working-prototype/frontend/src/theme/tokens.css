@@ -1,0 +1,168 @@
+/*
+ * Data Lens design tokens (Checkpoint 1, settled 15 Nov 2026).
+ * Light, minimal theme: white page, faint grey chrome, hairline borders,
+ * soft pastel blocks with a slightly deeper pastel border.
+ * Every text and background pair is recorded with its contrast ratio in
+ * docs/checkpoints/theme/decision.md.
+ */
+:root {
+  color-scheme: light;
+
+  /* Surfaces and lines */
+  --color-page: #ffffff;
+  --color-canvas: #fafafb;
+  --color-wash: #f3f4f7;
+  --color-wash-strong: #eceef2;
+  --color-border: #e6e8ec;
+  --color-border-strong: #d3d7de;
+
+  /* Text */
+  --color-text: #1f2328;
+  --color-text-secondary: #4b515b;
+  /* Reference label grey #7a808a measured 3.98:1 on white, below AA; stepped down to pass. */
+  --color-text-muted: #656b75;
+  --color-text-disabled: #9aa0a9;
+
+  /* Accent: muted indigo from the periwinkle family */
+  --color-accent: #4f5db0;
+  --color-accent-hover: #45529f;
+  --color-accent-pressed: #3b468d;
+  --color-accent-soft: #e4e8f7;
+  --color-accent-soft-border: #cdd4ee;
+  --color-accent-ink: #333f8c;
+  --color-on-accent: #ffffff;
+  --color-focus-ring: #4f5db0;
+
+  /* Destructive action */
+  --color-danger: #b4382c;
+  --color-danger-hover: #9e3025;
+
+  /* Categorical tints: fill, border, ink (text and icons on the fill) */
+  --tint-periwinkle-fill: #e4e8f7;
+  --tint-periwinkle-border: #cdd4ee;
+  --tint-periwinkle-ink: #333f8c;
+  --tint-mint-fill: #e6f3eb;
+  --tint-mint-border: #c8e2d1;
+  --tint-mint-ink: #22633f;
+  --tint-sand-fill: #f7efdd;
+  --tint-sand-border: #e9d9b4;
+  --tint-sand-ink: #6f4708;
+  --tint-rose-fill: #f9e6e5;
+  --tint-rose-border: #edcdcb;
+  --tint-rose-ink: #8a2a20;
+  --tint-lilac-fill: #eee7f6;
+  --tint-lilac-border: #dacceb;
+  --tint-lilac-ink: #5a3e8a;
+  --tint-sky-fill: #e3f0f7;
+  --tint-sky-border: #c4deec;
+  --tint-sky-ink: #1e5878;
+  --tint-neutral-fill: #f1f2f4;
+  --tint-neutral-border: #dfe2e7;
+  --tint-neutral-ink: #4b515b;
+
+  /* Status: soft fills with dark text; the dot carries the hue */
+  --status-good-fill: #e6f3eb;
+  --status-good-border: #c8e2d1;
+  --status-good-ink: #22633f;
+  --status-good-dot: #2f9a68;
+  --status-warning-fill: #fcf0d8;
+  --status-warning-border: #f0d9a6;
+  --status-warning-ink: #6f4708;
+  --status-warning-dot: #b57b12;
+  --status-critical-fill: #fbe4e2;
+  --status-critical-border: #f2c6c1;
+  --status-critical-ink: #8a2a20;
+  --status-critical-dot: #c8473b;
+  --status-neutral-fill: #f1f2f4;
+  --status-neutral-border: #dfe2e7;
+  --status-neutral-ink: #4b515b;
+  --status-neutral-dot: #8a909a;
+
+  /* Chart series, fixed order, validated (adjacent CVD worst 14.0, normal-vision worst 22.3) */
+  --series-1: #5b6bc0;
+  --series-2: #2f9a68;
+  --series-3: #9a5fc0;
+  --series-4: #c27a1e;
+  --series-5: #2f8fbf;
+  --series-6: #c9506a;
+
+  /* Sequential ramp (periwinkle), light to dark, for magnitude */
+  --seq-1: #eef0fa;
+  --seq-2: #cdd4ee;
+  --seq-3: #a3aee0;
+  --seq-4: #8190d3;
+  --seq-5: #5d6dc1;
+  --seq-6: #333f8c;
+
+  /* Chart chrome */
+  --chart-grid: #eceef2;
+  --chart-axis: #d3d7de;
+
+  /* Type */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --text-xs: 12px;
+  --text-xs-lh: 16px;
+  --text-sm: 13px;
+  --text-sm-lh: 20px;
+  --text-md: 14px;
+  --text-md-lh: 20px;
+  --text-lg: 16px;
+  --text-lg-lh: 24px;
+  --text-xl: 20px;
+  --text-xl-lh: 28px;
+  --text-2xl: 24px;
+  --text-2xl-lh: 32px;
+  --text-3xl: 32px;
+  --text-3xl-lh: 40px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* 8 px spacing scale (4 px half step for tight inline gaps) */
+  --space-half: 4px;
+  --space-1: 8px;
+  --space-1-5: 12px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-8: 64px;
+
+  /* Shape */
+  --radius: 6px;
+  --radius-sm: 4px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  /* Sizes */
+  --control-h: 36px;
+  --control-h-sm: 28px;
+  --row-h: 56px;
+  --icon-sm: 14px;
+  --icon-md: 16px;
+
+  /* Elevation (popovers and dialogs only) */
+  --shadow-popover: 0 1px 2px rgba(31, 35, 40, 0.06), 0 8px 24px rgba(31, 35, 40, 0.1);
+  --shadow-dialog: 0 2px 6px rgba(31, 35, 40, 0.06), 0 24px 48px rgba(31, 35, 40, 0.16);
+  --overlay: rgba(31, 35, 40, 0.32);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+
+  /* Layers */
+  --z-sticky: 10;
+  --z-overlay: 40;
+  --z-popover: 50;
+  --z-toast: 60;
+}
+
+/* Phone: larger touch targets */
+@media (max-width: 640px) {
+  :root {
+    --control-h: 44px;
+    --control-h-sm: 36px;
+  }
+}

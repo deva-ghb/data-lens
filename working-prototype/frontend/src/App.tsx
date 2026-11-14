@@ -1,8 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { apiGet } from "./api/client";
 
 type Health = { status: string };
+
+// The component gallery exists only in development builds; production drops it entirely.
+const Kit = import.meta.env.DEV ? lazy(() => import("./pages/Kit")) : null;
 
 function Home() {
   const health = useQuery({
@@ -28,6 +32,16 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      {Kit !== null && (
+        <Route
+          path="/kit"
+          element={
+            <Suspense fallback={null}>
+              <Kit />
+            </Suspense>
+          }
+        />
+      )}
     </Routes>
   );
 }

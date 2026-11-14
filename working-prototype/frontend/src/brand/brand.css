@@ -1,0 +1,26 @@
+.dl-logo {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dl-logo__mark {
+  display: block;
+  flex: none;
+}
+
+.dl-logo__word {
+  color: var(--color-text);
+  letter-spacing: -0.015em;
+}
+
+.dl-logo__lead {
+  font-weight: var(--weight-semibold);
+}
+
+.dl-logo__rest {
+  font-weight: var(--weight-regular);
+  color: var(--color-text-secondary);
+}
