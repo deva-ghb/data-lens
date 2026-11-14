@@ -1,0 +1,33 @@
+{
+  "version": "v0",
+  "note": "Expert-set version zero. Sensitivity rows from the concept doc section 6.2; published seeds 1.17 (heatwave day) and 1.36 (fourth consecutive night). Replace with the workshop output as v1.",
+  "dimensions": ["fatigue", "heat_strain", "physical", "acute", "safety_behaviour", "competency"],
+  "sens": {
+    "FALL_HEIGHT":       {"fatigue": "H", "heat_strain": "H", "physical": "M", "acute": "H", "safety_behaviour": "H", "competency": "H"},
+    "STRUCK_PLANT":      {"fatigue": "H", "heat_strain": "M", "physical": "L", "acute": "M", "safety_behaviour": "H", "competency": "M"},
+    "DROPPED_LOAD":      {"fatigue": "M", "heat_strain": "M", "physical": "L", "acute": "L", "safety_behaviour": "H", "competency": "H"},
+    "HEAT_ILLNESS":      {"fatigue": "H", "heat_strain": "H", "physical": "M", "acute": "H", "safety_behaviour": "L", "competency": "L"},
+    "MANUAL_HANDLING":   {"fatigue": "M", "heat_strain": "M", "physical": "H", "acute": "M", "safety_behaviour": "M", "competency": "L"},
+    "HOT_WORK_CONFINED": {"fatigue": "H", "heat_strain": "H", "physical": "M", "acute": "H", "safety_behaviour": "H", "competency": "H"}
+  },
+  "sens_value": {"H": 0.35, "M": 0.20, "L": 0.08},
+  "thresholds": {"5": [1.3, 1.9], "4": [1.4, 2.1], "3": [1.5, 2.4]},
+  "factor_caps": {"factor": 1.6, "profile": 2.0, "condition": 1.8, "control_min": 0.8, "control_max": 1.5},
+  "group_cap": 1.6,
+  "control_formula_k": 0.5,
+  "control_window_days": 365,
+  "fatigue_by_night": {"1": 1.0, "2": 1.05, "3": 1.12, "4": 1.36},
+  "short_sleep_step": 0.03,
+  "heat_by_tier": {"0": 1.0, "1": 1.08, "2": 1.17, "3": 1.17},
+  "heat_strain": {"acclimatisation_under_7_days": 1.3, "acclimatisation_under_14_days": 1.1},
+  "competency": {"refresher_missing": 1.15, "competency_expired": 1.3},
+  "acute": {"tired": 1.15, "hydration_low": 1.1},
+  "physical": {"fit_with_restrictions": 1.2, "per_lab_flag": 0.1},
+  "condition_terms": {
+    "heat": {"dimension": "heat_strain"},
+    "night": {"dimension": "fatigue", "value": 1.15},
+    "dust": {"dimension": "physical", "pm10_steps": [[150, 1.1], [250, 1.2]]},
+    "pace": {"dimension": "safety_behaviour", "vessel_call": 1.08},
+    "camp_recovery": {"dimension": "fatigue", "per_fraction_down": 1.0}
+  }
+}
