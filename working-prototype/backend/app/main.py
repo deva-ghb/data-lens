@@ -1,10 +1,12 @@
 from fastapi import APIRouter, FastAPI
 
+from app.api.ingest import router as ingest_router
 from app.auth.router import router as auth_router
 from app.errors import install_error_handlers
 
 api = APIRouter(prefix="/api")
 api.include_router(auth_router)
+api.include_router(ingest_router)
 
 
 @api.get("/health")
