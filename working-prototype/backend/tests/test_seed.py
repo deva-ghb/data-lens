@@ -134,10 +134,14 @@ def test_uabc_history_spans_12_months(seeded: Session) -> None:
 def test_no_derived_tables_populated(seeded: Session) -> None:
     assert seeded.scalar(select(func.count()).select_from(ScoreRun)) == 0
     assert seeded.scalar(select(func.count()).select_from(AssignmentScore)) == 0
-    open_warnings = seeded.scalar(
-        select(func.count()).select_from(WarningRecord).where(WarningRecord.closed_at.is_(None))
-    )
-    assert open_warnings == 0
+    # The seed replays the detector over the history, as the live system would have run.
+    # Past warnings are closed with an outcome; only Camp Block C is still open.
+    open_zones = seeded.scalars(
+        select(Zone.name)
+        .join(WarningRecord, WarningRecord.zone_id == Zone.id)
+        .where(WarningRecord.closed_at.is_(None))
+    ).all()
+    assert open_zones == ["Camp Block C"]
 
 
 def test_saffron_horizon_berths_at_berth_2_on_29_july(seeded: Session) -> None:
