@@ -70,3 +70,14 @@ def test_project_env_file_wins_over_shell_variables(tmp_path, monkeypatch):
     env_file.write_text("AZURE_OPENAI_API_KEY=from-project-file\n")
     monkeypatch.setenv("AZURE_OPENAI_API_KEY", "from-shell")
     assert Settings(_env_file=env_file).azure_openai_api_key == "from-project-file"
+
+
+def test_ai_can_be_switched_off_for_test_runs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """DATALENS_AI=0 keeps every copilot call on the machine, whatever .env holds."""
+    from app.ai import client
+    from app.config import Settings
+
+    monkeypatch.setenv("DATALENS_AI", "0")
+    off = Settings(azure_openai_endpoint="https://x.example/openai/v1", azure_openai_api_key="k")
+    monkeypatch.setattr(client, "settings", off)
+    assert client.ai_available() is False

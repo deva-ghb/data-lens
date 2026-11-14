@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     ai_text_model: str = "gpt-6-luna"
     ai_decisions_model: str = "gpt-6-luna"
     jwt_secret: str = Field(default_factory=local_secret, validation_alias="DATALENS_JWT_SECRET")
+    # DATALENS_AI=0 switches the copilot off, so browser test runs never call the service.
+    ai_enabled: bool = Field(default=True, validation_alias="DATALENS_AI")
 
     @classmethod
     def settings_customise_sources(

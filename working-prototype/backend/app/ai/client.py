@@ -28,7 +28,9 @@ def set_transport(transport: httpx.BaseTransport | None) -> None:
 
 
 def ai_available() -> bool:
-    return bool(settings.azure_openai_endpoint and settings.azure_openai_api_key)
+    return bool(
+        settings.ai_enabled and settings.azure_openai_endpoint and settings.azure_openai_api_key
+    )
 
 
 def _post(path: str, body: dict[str, Any]) -> dict[str, Any]:

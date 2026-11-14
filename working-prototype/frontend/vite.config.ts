@@ -7,7 +7,8 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
-      "/api": "http://localhost:8000",
+      // Browser tests run their own backend on another port.
+      "/api": process.env.DATALENS_API ?? "http://localhost:8000",
     },
   },
   test: {
