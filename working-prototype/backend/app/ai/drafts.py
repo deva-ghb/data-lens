@@ -88,8 +88,11 @@ def get_or_draft(
     context: dict[str, Any],
     language: str = "en",
     actor_id: int | None = None,
+    fresh: bool = False,
 ) -> AiDraft:
-    existing = stored_draft(session, kind, subject_kind, subject_id, language)
+    """`fresh` asks for a new draft even if one is stored (for example once more sections
+    of a record have been confirmed). The older draft stays in the record."""
+    existing = None if fresh else stored_draft(session, kind, subject_kind, subject_id, language)
     if existing is not None:
         return existing
     version, instructions = load_prompt(kind)

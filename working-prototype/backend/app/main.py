@@ -6,6 +6,7 @@ from app.api.governance import router as governance_router
 from app.api.home import router as home_router
 from app.api.ingest import router as ingest_router
 from app.api.permits import router as permits_router
+from app.api.warnings import router as warnings_router
 from app.auth.router import router as auth_router
 from app.errors import install_error_handlers
 
@@ -17,6 +18,7 @@ api.include_router(assignments_router)
 api.include_router(activities_router)
 api.include_router(governance_router)
 api.include_router(permits_router)
+api.include_router(warnings_router)
 
 
 @api.get("/health")
