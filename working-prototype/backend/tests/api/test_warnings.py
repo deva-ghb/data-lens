@@ -11,7 +11,9 @@ from app.models.ai import AiDraftStatus
 def fake_ai(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     seen: dict[str, Any] = {}
 
-    def fake(session, kind, subject_kind, subject_id, context, language="en", actor_id=None, fresh=False):  # type: ignore[no-untyped-def]
+    def fake(
+        session, kind, subject_kind, subject_id, context, language="en", actor_id=None, fresh=False
+    ):  # type: ignore[no-untyped-def]
         seen[kind] = context
         draft = unavailable_draft(kind, subject_kind, subject_id)
         draft.content = f"Draft for {kind}"

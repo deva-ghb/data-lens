@@ -47,6 +47,8 @@ extend-immutable-calls = ["fastapi.Depends", "app.api.common.require_scope"]
 "seed/*" = ["E501"]
 # Tests carry long literal fixtures and descriptive names.
 "tests/*" = ["E501"]
+# API routers carry full user-facing sentences in their messages.
+"app/api/*" = ["E501"]
 
 [tool.pyright]
 venvPath = "."

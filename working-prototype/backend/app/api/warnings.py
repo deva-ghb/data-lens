@@ -226,6 +226,7 @@ def record(warning_id: int, session: SessionDep, user: UserDep) -> dict[str, Any
             {"id": i.id, "status": i.status.value, "due_at": i.due_at.isoformat()}
             for i in inspections
         ],
+        "verification": (w.evidence_json or {}).get("verification"),
     }
 
 

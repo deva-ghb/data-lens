@@ -62,6 +62,7 @@ class NearMiss(Base):
     text: Mapped[str] = mapped_column(Text)
     potential_severity: Mapped[int]
     status: Mapped[RecordStatus] = mapped_column(default=RecordStatus.OPEN)
+    photo_key: Mapped[str | None] = mapped_column(String(255))
 
 
 class Incident(Base):
@@ -99,3 +100,4 @@ class HazardReport(Base):
     at: Mapped[datetime] = mapped_column(index=True)
     text: Mapped[str] = mapped_column(Text)
     status: Mapped[RecordStatus] = mapped_column(default=RecordStatus.OPEN)
+    photo_key: Mapped[str | None] = mapped_column(String(255))
