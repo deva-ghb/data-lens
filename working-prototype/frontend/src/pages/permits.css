@@ -195,3 +195,17 @@
 }
 
 .permit-card--unscored { border-left-color: var(--status-neutral-dot); }
+
+@media (max-width: 640px) {
+  /* One scrollable line of stages on a phone, never a wrapped capsule. */
+  .stages {
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .stage {
+    flex: none;
+  }
+}

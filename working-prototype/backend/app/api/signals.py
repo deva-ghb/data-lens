@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import func, select
 
-from app.api.common import SessionDep, not_found, require_role, require_scope
+from app.api.common import SessionDep, not_found, require_role
 from app.clock import site_now
 from app.errors import ApiError
 from app.feeds.csv_connect import ColumnMap, Proposal, confirm_mapping, propose_mapping
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/signals", tags=["signals"])
 
 @router.get("")
 def signals(
-    session: SessionDep, user: Person = Depends(require_scope("aggregates", "admin"))
+    session: SessionDep, user: Person = Depends(require_role("hse_head", "admin"))
 ) -> dict[str, Any]:
     clock = site_now(session)
     real_now = datetime.now(UTC).replace(tzinfo=None)

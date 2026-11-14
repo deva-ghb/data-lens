@@ -244,8 +244,8 @@ def test_bad_input_is_4xx_not_500(api) -> None:  # type: ignore[no-untyped-def]
     assert api.as_user("khalid.alnuaimi").get("/api/swaps?status=bogus").status_code == 422
     admin = api.as_user("hessa.almansoori")
     assert admin.get("/api/admin/people?role=bogus").status_code == 422
-    assert admin.get("/api/audit?limit=-5").status_code == 422
     hse = api.as_user("layla.haddad")
+    assert hse.get("/api/audit?limit=-5").status_code == 422
     assert (
         hse.post("/api/analytics/impact", json={"lti_per_year": 1e308, "hot_share": 9}).status_code
         == 422

@@ -57,7 +57,7 @@ def meta(session: SessionDep, user: UserDep) -> dict[str, Any]:
 def _decisions(session, user: Person) -> list[dict[str, Any]]:  # type: ignore[no-untyped-def]
     out: list[dict[str, Any]] = []
     role = user.role
-    if role in (Role.PLANNER, Role.HSE_HEAD):
+    if role == Role.PLANNER:
         rows = session.execute(
             select(SwapProposal, Person, Activity)
             .join(Assignment, Assignment.id == SwapProposal.assignment_id)

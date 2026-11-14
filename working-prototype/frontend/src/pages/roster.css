@@ -132,14 +132,18 @@
 
 .rec__swap {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-1);
-  flex-wrap: wrap;
   padding: var(--space-1) var(--space-1-5);
   border-radius: var(--radius-sm);
   background: var(--tint-mint-fill);
   border: 1px solid var(--tint-mint-border);
   color: var(--tint-mint-ink);
+}
+
+.rec__swap > svg {
+  flex: none;
+  margin-top: 3px;
 }
 
 /* Conditions versus crew. */

@@ -2,6 +2,7 @@ import { ArrowRight, CloudSun, Gauge, RefreshCw, Search, TriangleAlert } from "l
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useGet, useSend } from "../api/hooks";
+import { useMe } from "../auth/useMe";
 import { Page } from "../layout/AppShell";
 import { localTime } from "../layout/Meta";
 import { Button } from "../ui/Button";
@@ -255,6 +256,8 @@ function RosterBody({ data }: { data: RosterData }) {
 
 function Recommendation({ row }: { row: RosterRow }) {
   const toast = useToast();
+  // Only the planner decides a swap; everyone else who sees the roster reads it.
+  const decides = useMe().data?.role === "planner";
   const accept = useSend<{ reason?: string }>("POST", `/api/swaps/${row.swap?.id ?? 0}/accept`);
   const keep = useSend<{ reason: string }>("POST", `/api/assignments/${row.assignment_id}/keep`);
   const resolve = useSend<{ status: string; note: string }>("POST", `/api/contests/${row.contest?.id ?? 0}/resolve`);
@@ -290,7 +293,7 @@ function Recommendation({ row }: { row: RosterRow }) {
         <div className="rec__contest">
           <span className="pill pill--sand">{row.contest.status === "open" ? "Contested by the worker" : `Contest ${row.contest.status}`}</span>
           <p className="xsmall muted">“{row.contest.text}”</p>
-          {row.contest.status === "open" && (
+          {row.contest.status === "open" && decides && (
             <div className="row">
               <Button size="sm" variant="ghost" busy={resolve.isPending} onClick={() => resolve.mutate({ status: "dismissed", note: "The change stands for tonight." })}>Dismiss</Button>
               <Button size="sm" variant="secondary" busy={resolve.isPending} onClick={() => resolve.mutate({ status: "upheld", note: "Kept on the work with a buddy and extra breaks." })}>Uphold</Button>
@@ -299,8 +302,8 @@ function Recommendation({ row }: { row: RosterRow }) {
         </div>
       )}
       <div className="row row--between">
-        <span className="xsmall muted">{status === "none" ? "Waiting for you" : SWAP_WORDS[status] ?? status}</span>
-        {pending && (
+        <span className="xsmall muted">{status === "none" ? (decides ? "Waiting for you" : "Waiting for the planner") : SWAP_WORDS[status] ?? status}</span>
+        {pending && decides && (
           <div className="row">
             <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
               Keep with controls

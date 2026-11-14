@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.common import SessionDep, require_scope
+from app.api.common import SessionDep, require_role, require_scope
 from app.clock import site_now
 from app.engine.run import evening_shift, run_scores
 from app.errors import ApiError
@@ -355,7 +355,7 @@ def accept(
     swap_id: int,
     body: SwapBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("site_tiers")),
+    user: Person = Depends(require_role("planner")),
 ) -> dict[str, Any]:
     return _move(
         session,
@@ -372,7 +372,7 @@ def decline(
     swap_id: int,
     body: SwapBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("site_tiers")),
+    user: Person = Depends(require_role("planner")),
 ) -> dict[str, Any]:
     if not body.reason or not body.reason.strip():
         raise ApiError(422, "invalid_input", "Please say why you are declining this swap.")
@@ -496,7 +496,7 @@ def keep(
     assignment_id: int,
     body: KeepBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("site_tiers")),
+    user: Person = Depends(require_role("planner")),
 ) -> dict[str, Any]:
     """Settle a Reassign today without moving the worker: the planner keeps them on the
     work with extra controls and a logged reason. Covers workers with no proposal too."""
@@ -548,7 +548,7 @@ def resolve_contest(
     contest_id: int,
     body: ResolveBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("site_tiers")),
+    user: Person = Depends(require_role("planner")),
 ) -> dict[str, Any]:
     from app.models.scores import ContestStatus
 

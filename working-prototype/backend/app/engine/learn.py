@@ -76,7 +76,9 @@ def propose_weights_from_outcomes(session: Session) -> WeightsVersion | None:
 
 
 def approve_weights(session: Session, version_id: int, actor: Person | None) -> WeightsVersion:
-    proposal = session.get_one(WeightsVersion, version_id)
+    proposal = session.get(WeightsVersion, version_id)
+    if proposal is None:
+        raise LookupError("That weights version does not exist.")
     if proposal.status != WeightsStatus.PROPOSED:
         raise ValueError("Only a proposed weights version can be approved.")
     # A proposal is a change to the version that was active when it was made. Any other

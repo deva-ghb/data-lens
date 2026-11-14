@@ -316,13 +316,8 @@ class ConfirmBody(BaseModel):
     content: str
 
 
-@router.post("/warnings/{warning_id}/steps/{n}/confirm")
-def confirm_step(
-    warning_id: int, n: int, body: ConfirmBody, session: SessionDep, user: UserDep
-) -> dict[str, Any]:
-    w = _record(session, warning_id)
-    if w.status != WarningStatus.OPEN:
-        raise conflict("This warning is closed.")
+def _step_confirmer(n: int, user: UserDep) -> Person:
+    """Only the step's named role confirms it, checked before anything else is read."""
     role = CONFIRMER.get(n)
     allowed = {
         "hse_head": {Role.HSE_HEAD},
@@ -335,6 +330,20 @@ def confirm_step(
             "forbidden",
             f"Step {n} is confirmed by the {(role or 'system').replace('_', ' ')}.",
         )
+    return user
+
+
+@router.post("/warnings/{warning_id}/steps/{n}/confirm")
+def confirm_step(
+    warning_id: int,
+    n: int,
+    body: ConfirmBody,
+    session: SessionDep,
+    user: Person = Depends(_step_confirmer),
+) -> dict[str, Any]:
+    w = _record(session, warning_id)
+    if w.status != WarningStatus.OPEN:
+        raise conflict("This warning is closed.")
     if not body.content.strip():
         raise ApiError(422, "invalid_input", "The section needs some text.")
     step = session.scalars(

@@ -5,7 +5,7 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 
-from app.api.common import SessionDep, UserDep
+from app.api.common import SessionDep, UserDep, not_found
 from app.errors import ApiError
 from app.models import AuditEntry, Person, Role
 from app.policy.access import can
@@ -14,9 +14,7 @@ router = APIRouter(tags=["governance"])
 
 
 def _audit_reader(user: UserDep) -> Person:
-    if not (
-        can(user.role, "audit_redacted") or can(user.role, "all_records") or user.role == Role.ADMIN
-    ):
+    if not (can(user.role, "audit_redacted") or can(user.role, "all_records")):
         raise ApiError(403, "forbidden", "The audit trail is not available for your role.")
     return user
 
@@ -197,6 +195,8 @@ def approve(
 ) -> dict[str, Any]:
     try:
         w = approve_weights(session, version_id, user)
+    except LookupError:
+        raise not_found("weights version") from None
     except ValueError as error:
         raise ApiError(409, "conflict", str(error)) from None
     session.commit()
