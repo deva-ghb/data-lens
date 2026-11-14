@@ -3,12 +3,16 @@ from fastapi import APIRouter, FastAPI
 from app.api.actions import router as actions_router
 from app.api.activities import router as activities_router
 from app.api.admin import router as admin_router
+from app.api.analytics import router as analytics_router
 from app.api.assignments import router as assignments_router
 from app.api.governance import router as governance_router
+from app.api.health import router as health_router
 from app.api.home import router as home_router
 from app.api.incidents import router as incidents_router
 from app.api.ingest import router as ingest_router
 from app.api.permits import router as permits_router
+from app.api.phone import router as phone_router
+from app.api.signals import router as signals_router
 from app.api.warnings import router as warnings_router
 from app.auth.router import router as auth_router
 from app.errors import install_error_handlers
@@ -25,6 +29,10 @@ api.include_router(warnings_router)
 api.include_router(incidents_router)
 api.include_router(actions_router)
 api.include_router(admin_router)
+api.include_router(analytics_router)
+api.include_router(health_router)
+api.include_router(phone_router)
+api.include_router(signals_router)
 
 
 @api.get("/health")

@@ -18,42 +18,48 @@ def fake_ai(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
         seen["questions"] = [q.name for q in questions]
         seen["input"] = input_value
         answers = {
-                "report_type": {
-                    "type": "choice",
-                    "name": "report_type",
-                    "choice": "near_miss",
-                    "confidence": 0.9,
-                },
-                "potential_severity": {
-                    "type": "score",
-                    "name": "potential_severity",
-                    "score": 3.2,
-                    "confidence": 0.6,
-                },
-                "likelihood": {
-                    "type": "score",
-                    "name": "likelihood",
-                    "score": 2.6,
-                    "confidence": 0.5,
-                },
-                "harness_not_clipped": {
-                    "type": "predicate",
-                    "name": "harness_not_clipped",
-                    "probability": 0.81,
-                },
-                "person_under_load": {
-                    "type": "predicate",
-                    "name": "person_under_load",
-                    "probability": 0.05,
-                },
-                "missing_ppe": {"type": "predicate", "name": "missing_ppe", "probability": 0.12},
+            "report_type": {
+                "type": "choice",
+                "name": "report_type",
+                "choice": "near_miss",
+                "confidence": 0.9,
+            },
+            "potential_severity": {
+                "type": "score",
+                "name": "potential_severity",
+                "score": 3.2,
+                "confidence": 0.6,
+            },
+            "likelihood": {
+                "type": "score",
+                "name": "likelihood",
+                "score": 2.6,
+                "confidence": 0.5,
+            },
+            "harness_not_clipped": {
+                "type": "predicate",
+                "name": "harness_not_clipped",
+                "probability": 0.81,
+            },
+            "person_under_load": {
+                "type": "predicate",
+                "name": "person_under_load",
+                "probability": 0.05,
+            },
+            "missing_ppe": {"type": "predicate", "name": "missing_ppe", "probability": 0.12},
         }
         from datetime import datetime
 
         from app.models import AiDecision
 
-        row = AiDecision(subject_kind=subject_kind, subject_id=subject_id, model="fake", questions_json=[],
-                         answers_json=list(answers.values()), created_at=datetime(2026, 7, 28, 14))
+        row = AiDecision(
+            subject_kind=subject_kind,
+            subject_id=subject_id,
+            model="fake",
+            questions_json=[],
+            answers_json=list(answers.values()),
+            created_at=datetime(2026, 7, 28, 14),
+        )
         session.add(row)
         session.flush()
         return Decisions(row.id, answers)

@@ -140,3 +140,6 @@ def feed_index(session: Session) -> FeedIndex:
 
 def clear_feed_index(session: Session) -> None:
     session.info.pop(("feed_index",), None)
+
+
+FEED_NAMES_FALLBACK: dict[str, str] = {}
