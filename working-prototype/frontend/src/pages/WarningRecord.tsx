@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardCheck, FilePlus2, Sparkles } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, FilePlus2, PenLine, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toDraft, useGet, useSend, type ApiDraft } from "../api/hooks";
@@ -10,6 +10,7 @@ import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Dialog } from "../ui/Dialog";
 import { Select } from "../ui/Select";
+import { TextArea } from "../ui/TextArea";
 import { useToast } from "../ui/Toast";
 import { Loaded, titleCase } from "./common";
 import "./pages.css";
@@ -103,6 +104,8 @@ function StepView({ warningId, step, me, open }: { warningId: number; step: Step
   const confirm = useSend<{ content: string }>("POST", `/api/warnings/${warningId}/steps/${step.step}/confirm`);
   const d = toDraft(step.draft);
   const mine = canConfirm(me.role, step.confirmer_role);
+  const [writing, setWriting] = useState(false);
+  const [text, setText] = useState("");
   return (
     <li className={`step step--${step.status}`}>
       <span className="step__no num">{step.step}</span>
@@ -132,12 +135,36 @@ function StepView({ warningId, step, me, open }: { warningId: number; step: Step
             }
           />
         )}
-        {!d && open && step.step < 10 && (me.role === "hse_head" || me.role === "permit_issuer") && (
+        {!d && open && step.step < 10 && !writing && (mine || me.role === "hse_head") && (
           <div className="row">
-            <Button size="sm" variant="secondary" icon={<Sparkles />} busy={draft.isPending} onClick={() => draft.mutate({ refresh: false }, { onError: (e) => toast({ title: "No draft", body: e.message, tone: "critical" }) })}>
-              Draft this section
-            </Button>
-            <span className="xsmall muted">The copilot writes from the record so far. You edit and confirm.</span>
+            {(me.role === "hse_head" || me.role === "permit_issuer") && (
+              <Button size="sm" variant="secondary" icon={<Sparkles />} busy={draft.isPending} onClick={() => draft.mutate({ refresh: false }, { onError: (e) => toast({ title: "No draft", body: e.message, tone: "critical" }) })}>
+                Draft this section
+              </Button>
+            )}
+            {mine && (
+              <Button size="sm" variant="ghost" icon={<PenLine />} onClick={() => setWriting(true)}>
+                Write it yourself
+              </Button>
+            )}
+            <span className="xsmall muted">The copilot writes from the record so far, or you write it. Nothing is saved until you confirm.</span>
+          </div>
+        )}
+        {!d && open && writing && (
+          <div className="stack stack--tight">
+            <TextArea aria-label={`${step.name}: your text`} rows={4} value={text} onChange={(e) => setText(e.target.value)} />
+            <div className="row" style={{ justifyContent: "flex-end" }}>
+              <Button size="sm" variant="ghost" onClick={() => setWriting(false)}>Cancel</Button>
+              <Button
+                size="sm"
+                variant="primary"
+                disabled={!text.trim()}
+                busy={confirm.isPending}
+                onClick={() => confirm.mutate({ content: text.trim() }, { onSuccess: () => { setWriting(false); toast({ title: `${step.name} confirmed`, tone: "good" }); }, onError: (e) => toast({ title: "Not confirmed", body: e.message, tone: "critical" }) })}
+              >
+                Confirm section
+              </Button>
+            </div>
           </div>
         )}
         {!d && !open && <p className="small muted">Not recorded.</p>}

@@ -11,6 +11,7 @@ from seed.audit_history import write_audit_history
 from seed.generate import generate
 from seed.history_ai import write_history
 from seed.scenario import SEED
+from seed.story_checkins import write_story_checkins
 
 
 def build_database(path: Path) -> None:
@@ -25,6 +26,7 @@ def build_database(path: Path) -> None:
             session.commit()
             write_history(session)
             session.commit()
+            write_story_checkins(session)
             write_audit_history(session)
             session.commit()
     finally:

@@ -82,14 +82,16 @@ def test_unshared_outcome_does_not_change_r_or_reasons(scenario: Session) -> Non
 
 
 def test_rescore_after_shift_start_marks_missing_checkins_unknown(scenario: Session) -> None:
+    """Kiran never checks in for the story night; the crews around him did."""
     set_site_now(scenario, datetime(2026, 7, 29, 16, 0), None)
     run = run_scores(scenario, _night(scenario).id, RunKind.MANUAL)
+    kiran = scenario.scalars(select(Person).where(Person.email.startswith("kiran.shrestha@"))).one()
+    assert _score(scenario, run.id, kiran.id).tier == Tier.UNKNOWN
     tiers = {
         s.tier
         for s in scenario.scalars(select(AssignmentScore).where(AssignmentScore.run_id == run.id))
     }
-    assert Tier.FIT not in tiers
-    assert Tier.UNKNOWN in tiers
+    assert Tier.FIT in tiers
 
 
 def test_late_checkin_clears_unknown(scenario: Session) -> None:

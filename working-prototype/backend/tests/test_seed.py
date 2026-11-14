@@ -306,3 +306,28 @@ def test_audit_trail_covers_seeded_history(scenario: Session) -> None:
     assert count("action_created") > 0
     first = scenario.scalars(select(AuditEntry).order_by(AuditEntry.at)).first()
     assert first is not None and first.at < datetime(2026, 7, 1)
+
+
+def test_story_night_check_ins_wait_in_the_future(scenario: Session) -> None:
+    """The crews check in before the story night; Arjun does it on camera, Kiran never does."""
+    from app.models import CheckIn, Person, Shift
+
+    night = scenario.scalars(
+        select(Shift).where(
+            Shift.date == date(2026, 7, 30) - timedelta(days=1), Shift.kind == ShiftKind.NIGHT
+        )
+    ).one()
+    rostered = set(
+        scenario.scalars(select(Assignment.person_id).where(Assignment.shift_id == night.id))
+    )
+    checked = scenario.scalars(select(CheckIn).where(CheckIn.shift_id == night.id)).all()
+    by_email = {
+        p.email.split("@")[0]: p.id
+        for p in scenario.scalars(select(Person).where(Person.id.in_(rostered)))
+    }
+    assert {c.person_id for c in checked} == rostered - {
+        by_email["arjun.thapa"],
+        by_email["kiran.shrestha"],
+    }
+    clock = datetime(2026, 7, 28, 14, 0)
+    assert all(clock < c.at < night.start_at for c in checked)
