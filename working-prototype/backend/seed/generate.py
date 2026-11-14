@@ -258,7 +258,10 @@ def _roster(ctx: Ctx) -> None:
                     continue
                 past = start < CLOCK
                 # Rostered either way; a sick worker keeps the roster slot and logs an absence.
-                absent = past and not story_window and rng.random() < 0.02
+                # The extended-night lashers keep a clean run in the fortnight before the
+                # story night, so their roster-defined group is the one in the concept doc.
+                protected = w.cohort == "exp_nights" and day >= STORY_DATE - timedelta(days=16)
+                absent = past and not story_window and not protected and rng.random() < 0.02
                 if absent:
                     ctx.add(Absence, person_id=pid, date=day, kind="sickness")
                 activity = crew.activity
@@ -358,7 +361,9 @@ def _vessels_and_permits(ctx: Ctx) -> None:
             length = timedelta(hours=int(rng.integers(26, 44)))
             if berth == 2 and t + length > story_arrive - timedelta(hours=6):
                 break
-            calls.append((ctx.pick(VESSELS), zone, t, t + length))
+            busy = {name for name, _, a, d in calls if a < t + length and d > t}
+            free = [v for v in VESSELS if v not in busy]
+            calls.append((ctx.pick(free), zone, t, t + length))
             t = t + length + timedelta(hours=int(rng.integers(5, 28)))
     calls.append(
         ("MV Saffron Horizon", ctx.zone_id["Berth 2"], story_arrive, datetime(2026, 7, 31, 2, 0))
@@ -402,6 +407,8 @@ def _vessels_and_permits(ctx: Ctx) -> None:
                     )
                     ctx.session.add(permit)
                     ctx.session.flush()
+                    if start - timedelta(hours=10) > CLOCK:
+                        continue  # requested after the site clock: not in the record yet
                     ctx.add(
                         PermitEvent,
                         permit_id=permit.id,
@@ -410,7 +417,7 @@ def _vessels_and_permits(ctx: Ctx) -> None:
                         text=f"Requested for {name}.",
                         actor_id=None,
                     )
-                    if status != PermitStatus.REQUESTED:
+                    if status != PermitStatus.REQUESTED and start - timedelta(minutes=40) <= CLOCK:
                         ctx.add(
                             PermitEvent,
                             permit_id=permit.id,

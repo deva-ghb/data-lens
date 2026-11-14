@@ -15,6 +15,7 @@ from app.clock import site_now
 from app.engine.groups import group_rates, memberships
 from app.engine.weights import Weights
 from app.models import (
+    Absence,
     Activity,
     ActivityHazard,
     Assignment,
@@ -52,6 +53,8 @@ class ReadinessInputs:
     fitness_outcome: FitnessOutcome | None
     lab_flags: int
     unwell_event: bool
+    activity_competency: str | None = None
+    not_today: bool = False
 
 
 @dataclass(frozen=True)
@@ -64,9 +67,15 @@ class Factor:
     reason: str
 
 
-def knowledge_time(session: Session, shift: Shift) -> datetime:
-    """What the engine may know about a shift: nothing after the site clock or the shift start."""
-    return min(site_now(session), shift.start_at)
+def knowledge_time(session: Session, shift: Shift, live: bool = False) -> datetime:
+    """The latest moment whose records the engine may read for a shift.
+
+    The evening run looks ahead: it may know nothing after the site clock or the shift
+    start, whichever comes first. A shift-start or manual re-score reads everything up to
+    the site clock, so late check-ins and "I feel unwell" during the shift are seen.
+    """
+    now = site_now(session)
+    return now if live else min(now, shift.start_at)
 
 
 def _consecutive_nights(session: Session, person_id: int, shift: Shift) -> int:
@@ -81,6 +90,16 @@ def _consecutive_nights(session: Session, person_id: int, shift: Shift) -> int:
                 Shift.kind == ShiftKind.NIGHT,
                 Shift.date <= shift.date,
                 Shift.date > shift.date - timedelta(days=14),
+            )
+        )
+    )
+    # Nights worked, not just rostered: a night off sick breaks the run.
+    nights -= set(
+        session.scalars(
+            select(Absence.date).where(
+                Absence.person_id == person_id,
+                Absence.date <= shift.date,
+                Absence.date > shift.date - timedelta(days=14),
             )
         )
     )
@@ -109,10 +128,12 @@ def required_refreshers(session: Session, activity_id: int) -> dict[str, int]:
     return needed
 
 
-def gather_inputs(session: Session, person_id: int, shift_id: int) -> ReadinessInputs:
+def gather_inputs(
+    session: Session, person_id: int, shift_id: int, as_of: datetime | None = None
+) -> ReadinessInputs:
     shift = session.get_one(Shift, shift_id)
     person = session.get_one(Person, person_id)
-    as_of = knowledge_time(session, shift)
+    as_of = as_of or knowledge_time(session, shift)
     assignment = session.scalars(
         select(Assignment).where(Assignment.person_id == person_id, Assignment.shift_id == shift_id)
     ).first()
@@ -141,7 +162,13 @@ def gather_inputs(session: Session, person_id: int, shift_id: int) -> ReadinessI
         )
     )
     missing: set[str] = set()
+    activity_competency = None
     if assignment is not None:
+        activity_competency = session.scalar(
+            select(Competency.code)
+            .join(Activity, Activity.competency_id == Competency.id)
+            .where(Activity.id == assignment.activity_id)
+        )
         for course, valid_days in required_refreshers(session, assignment.activity_id).items():
             last = session.scalar(
                 select(TrainingRecord.completed_on)
@@ -168,6 +195,12 @@ def gather_inputs(session: Session, person_id: int, shift_id: int) -> ReadinessI
         )
         .order_by(FitnessOutcome.at.desc())
     ).first()
+    # "Not today" covers the shift it was given for: anything starting within 24 hours.
+    not_today = (
+        outcome is not None
+        and outcome.outcome == FitnessDecision.NOT_TODAY
+        and shift.start_at - outcome.at <= timedelta(hours=24)
+    )
     flags_since = outcome.at if outcome else as_of - timedelta(days=120)
     lab_flags = len(
         session.scalars(
@@ -202,6 +235,8 @@ def gather_inputs(session: Session, person_id: int, shift_id: int) -> ReadinessI
         fitness_outcome=outcome,
         lab_flags=lab_flags,
         unwell_event=unwell,
+        activity_competency=activity_competency,
+        not_today=not_today,
     )
 
 
@@ -265,14 +300,17 @@ def readiness(inputs: ReadinessInputs, weights: Weights) -> dict[str, Factor]:
         heat, weights, confidence=0.95, freshness=None, source="HR records", reason=heat_reason
     )
 
+    # Only an outcome the worker chose to share can change the score. Lab results never
+    # change it directly; two or more flags send the worker to the clinician (Refer).
     physical, physical_reason = 1.0, "No restriction on record"
     outcome = inputs.fitness_outcome
-    if outcome is not None and outcome.outcome == FitnessDecision.FIT_WITH_RESTRICTIONS:
+    if (
+        outcome is not None
+        and outcome.share_with_employer
+        and outcome.outcome == FitnessDecision.FIT_WITH_RESTRICTIONS
+    ):
         physical = weights.physical["fit_with_restrictions"]
         physical_reason = "Cleared by the clinician with restrictions"
-    if inputs.lab_flags:
-        physical *= 1 + weights.physical["per_lab_flag"] * inputs.lab_flags
-        physical_reason = "Health check follow-up pending with the clinic"
     factors["physical"] = _factor(
         physical,
         weights,
@@ -325,7 +363,10 @@ def readiness(inputs: ReadinessInputs, weights: Weights) -> dict[str, Factor]:
     )
 
     competency, comp_reason = 1.0, "Training and competencies current"
-    if inputs.training_missing:
+    if inputs.activity_competency and inputs.activity_competency not in inputs.competencies_current:
+        competency = weights.competency["competency_expired"]
+        comp_reason = "Competency for this work has expired"
+    elif inputs.training_missing:
         competency = weights.competency["refresher_missing"]
         names = {"HEIGHT_REFRESHER": "height refresher", "DRIVING_REFRESHER": "driving refresher"}
         missing = ", ".join(names.get(c, c.lower()) for c in sorted(inputs.training_missing))

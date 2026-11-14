@@ -18,7 +18,6 @@ from app.engine.layers import condition, control, hazards_of, profile
 from app.engine.readiness import gather_inputs, knowledge_time, readiness
 from app.engine.weights import Weights
 from app.models import Activity, Assignment, Shift
-from app.models.health import FitnessDecision
 from app.models.roster import Feeling
 from app.models.scores import ConditionsSource, Tier
 
@@ -39,6 +38,13 @@ class ScoreResult:
     group_step_limited: bool
     late_feeds: list[str]
     reason: str
+    person_id: int = 0
+    activity_id: int = 0
+    gang_id: int | None = None
+    grade: int = 0
+    group_code: str | None = None
+    acclimatisation_days: int = 0
+    heat_tier: int | None = None
 
 
 def tier_for(grade: int, r: float, weights: Weights) -> Tier:
@@ -68,18 +74,26 @@ def score(
     weights: Weights,
     conditions_source: ConditionsSource,
     require_checkin: bool = False,
+    live: bool = False,
 ) -> ScoreResult | None:
+    """Score one assignment.
+
+    `live` is False for the evening run (it reads nothing after the shift start) and True
+    for shift-start and manual re-scores (they read up to the site clock). Once the shift
+    has started, a worker with no check-in is Unknown whatever kind of run it is.
+    """
     assignment = session.get_one(Assignment, assignment_id)
     activity = session.get_one(Activity, assignment.activity_id)
     if activity.grade < 3:
         return None
     shift = session.get_one(Shift, assignment.shift_id)
-    as_of = knowledge_time(session, shift)
+    as_of = knowledge_time(session, shift, live)
+    require_checkin = require_checkin or as_of >= shift.start_at
     hazards = hazards_of(session, activity.id)
 
-    inputs = gather_inputs(session, assignment.person_id, shift.id)
+    inputs = gather_inputs(session, assignment.person_id, shift.id, as_of)
     factors = readiness(inputs, weights)
-    control_layer = control(session, activity.id, shift.start_at, weights)
+    control_layer = control(session, activity.id, as_of, weights)
     condition_layer = condition(
         session, assignment, shift, hazards, weights, conditions_source, as_of
     )
@@ -99,7 +113,7 @@ def score(
     if (
         inputs.unwell_event
         or (checkin is not None and checkin.feeling == Feeling.UNWELL)
-        or (outcome is not None and outcome.outcome == FitnessDecision.NOT_TODAY)
+        or inputs.not_today
         or inputs.lab_flags >= 2
     ):
         tier, reason = Tier.REFER, "A health signal needs the clinician first"
@@ -134,4 +148,11 @@ def score(
         group_step_limited=limited,
         late_feeds=condition_layer.late_feeds,
         reason=reason,
+        person_id=assignment.person_id,
+        activity_id=activity.id,
+        gang_id=assignment.gang_id,
+        grade=activity.grade,
+        group_code=inputs.group_code,
+        acclimatisation_days=inputs.acclimatisation_days,
+        heat_tier=condition_layer.heat_tier,
     )

@@ -1,7 +1,8 @@
 """Small-cell suppression: any group below the threshold is hidden in every view.
 
-Totals are always rounded to the nearest 5, so a hidden cell cannot be recovered
-by subtracting the visible cells from the total.
+A single hidden cell is never left alone: the next smallest cell is hidden with it
+(complementary suppression), and totals are rounded to the nearest 5, so no hidden
+value can be recovered by subtracting the visible cells from the total.
 """
 
 from dataclasses import dataclass
@@ -45,7 +46,13 @@ def small_cell_threshold(session: Session) -> int:
 
 
 def suppress(cells: list[Cell], k: int) -> SuppressedTable:
-    shown = [ShownCell(c.label, c.value if c.value >= k else None) for c in cells]
+    hidden = {i for i, c in enumerate(cells) if c.value < k}
+    if len(hidden) == 1 and len(cells) > 1:
+        # Complementary suppression: one hidden cell could be recovered from the total,
+        # so the next smallest cell is hidden too.
+        rest = sorted((c.value, i) for i, c in enumerate(cells) if i not in hidden)
+        hidden.add(rest[0][1])
+    shown = [ShownCell(c.label, None if i in hidden else c.value) for i, c in enumerate(cells)]
     return SuppressedTable(
         cells=shown,
         total=round_to_5(sum(c.value for c in cells)),

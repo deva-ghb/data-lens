@@ -39,10 +39,10 @@ def test_single_class_never_above_watch(scenario: Session) -> None:
 
 def test_clinic_feed_off_drops_one_level_and_is_named(scenario: Session) -> None:
     berth_3 = _zone(scenario, "Berth 3")
-    normal = _signal_for(detect(scenario, date(2026, 6, 12)), berth_3)
+    normal = _signal_for(detect(scenario, date(2026, 6, 11)), berth_3)
     assert normal is not None and normal.level == WarningLevel.WARNING
     without_clinic = _signal_for(
-        detect(scenario, date(2026, 6, 12), feeds_off=frozenset({"CLINIC_VISITS"})), berth_3
+        detect(scenario, date(2026, 6, 11), feeds_off=frozenset({"CLINIC_VISITS"})), berth_3
     )
     assert without_clinic is not None
     assert without_clinic.level == WarningLevel.WATCH

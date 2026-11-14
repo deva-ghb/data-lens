@@ -96,6 +96,23 @@ def _bump_pm10(ctx: Ctx, start: datetime, hours: int, factor: float) -> None:
             row["value"] = round(row["value"] * factor, 1)
 
 
+def _sick(ctx: Ctx, people: list[tuple[int, str]], day: date, count: int) -> None:
+    """Mark rostered workers off sick on a day: an absence, and no check-in that day."""
+    rostered = [pid for pid, _ in people if any(d == day for d, _, _, _ in ctx.worked.get(pid, []))]
+    for _ in range(count):
+        if not rostered:
+            return
+        pid = ctx.pick(rostered)
+        rostered.remove(pid)
+        ctx.add(Absence, person_id=pid, date=day, kind="sickness")
+        shift_ids = {sid for (d, _k), sid in ctx.shift_id.items() if d == day}
+        ctx.rows[CheckIn] = [
+            r
+            for r in ctx.rows[CheckIn]
+            if not (r["person_id"] == pid and r["shift_id"] in shift_ids)
+        ]
+
+
 def _crew_people(ctx: Ctx, crews: set[str]) -> list[tuple[int, str]]:
     return [
         (ctx.person_id[i], w.camp or "Mirsal Village District")
@@ -118,14 +135,12 @@ def _e1_dust(ctx: Ctx) -> None:
                 day + timedelta(hours=6 + int(ctx.rng.integers(0, 8))),
                 "respiratory",
             )
-        for _ in range(2):
-            pid, _ = ctx.pick(people)
-            ctx.add(Absence, person_id=pid, date=day.date(), kind="sickness")
+        _sick(ctx, people, day.date(), 2)
 
 
 def _e2_night_fatigue(ctx: Ctx) -> None:
     lash = ctx.activity_id["LASH_DECK"]
-    for when in (datetime(2026, 6, 9, 22), datetime(2026, 6, 11, 23), datetime(2026, 6, 12, 21)):
+    for when in (datetime(2026, 6, 8, 22), datetime(2026, 6, 9, 23), datetime(2026, 6, 11, 22)):
         ctx.add(
             NearMiss,
             activity_id=lash,
@@ -142,7 +157,7 @@ def _e2_night_fatigue(ctx: Ctx) -> None:
         activity_id=lash,
         zone_id=ctx.zone_id["Berth 3"],
         reported_by=None,
-        at=datetime(2026, 6, 10, 22),
+        at=datetime(2026, 6, 10, 21),
         text="Rung loose on the lashing platform ladder at bay 22; crew are rushing past it.",
         status=RecordStatus.CLOSED,
     )
@@ -276,6 +291,4 @@ def _decoys(ctx: Ctx) -> None:
     # D2: a dusty afternoon and two absences in Yard Block 6. Nothing follows.
     _bump_pm10(ctx, datetime(2026, 6, 2, 8), 10, 2.6)
     people = _crew_people(ctx, {"Housekeeping Crew", "Reefer Team 2"})
-    for _ in range(3):
-        pid, _ = ctx.pick(people)
-        ctx.add(Absence, person_id=pid, date=date(2026, 6, 2), kind="sickness")
+    _sick(ctx, people, date(2026, 6, 2), 3)

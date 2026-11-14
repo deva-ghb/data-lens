@@ -40,8 +40,11 @@ def _person(session: Session, role: Role, email: str) -> Person:
 
 def test_suppression_hides_cells_below_threshold() -> None:
     table = suppress([Cell("A", 12), Cell("B", 4), Cell("C", 30)], k=10)
-    assert [c.value for c in table.cells] == [12, None, 30]
-    assert table.suppressed_count == 1
+    # B is below the threshold; A, the next smallest, is hidden with it.
+    assert [c.value for c in table.cells] == [None, None, 30]
+    assert table.suppressed_count == 2
+    two_small = suppress([Cell("A", 3), Cell("B", 4), Cell("C", 30)], k=10)
+    assert [c.value for c in two_small.cells] == [None, None, 30]
 
 
 def test_totals_rounded_so_hidden_cell_not_recoverable() -> None:
@@ -138,3 +141,46 @@ def test_current_shift_without_any_shift_raises(session: Session) -> None:
     set_site_now(session, datetime(2026, 7, 29, 16, 0), admin)
     with pytest.raises(LookupError):
         current_shift(session)
+
+
+def test_one_hidden_cell_is_never_left_alone() -> None:
+    for hidden in range(0, 10):
+        for a in range(10, 40):
+            table = suppress([Cell("A", a), Cell("B", hidden), Cell("C", 30)], k=10)
+            hidden_cells = [c for c in table.cells if c.value is None]
+            assert len(hidden_cells) != 1, (a, hidden)
+
+
+def test_access_table_matches_the_role_sheet() -> None:
+    expected = {
+        Role.WORKER: {"own_profile", "own_health"},
+        Role.FOREMAN: {"own_profile", "crew_actions"},
+        Role.PLANNER: {
+            "own_profile",
+            "site_tiers",
+            "permit_counts",
+            "swap_proposals",
+            "fitness_outcomes",
+        },
+        Role.SHIFT_MANAGER: {"own_profile", "swap_proposals", "permit_counts"},
+        Role.PERMIT_ISSUER: {"own_profile", "permit_counts"},
+        Role.HSE_HEAD: {
+            "own_profile",
+            "aggregates",
+            "all_records",
+            "site_tiers",
+            "permit_counts",
+            "crew_actions",
+            "fitness_outcomes",
+            "swap_proposals",
+        },
+        Role.CLINICIAN: {"own_profile", "health_detail", "aggregates"},
+        Role.AUTHORITY: {
+            "own_profile",
+            "district_aggregates",
+            "employer_aggregates",
+            "audit_redacted",
+        },
+        Role.ADMIN: {"own_profile", "admin"},
+    }
+    assert {role: set(scopes) for role, scopes in ACCESS.items()} == expected

@@ -7,7 +7,7 @@ walkthrough says they do:
   a control multiplier of about 1.15.
 - Each behavioural group's unsafe rate per 100 cards on grade 3 to 5 work, relative to
   the site, lands on its multiplier (0.8, 1.6, 1.3, 0.9, 1.4, 1.0).
-Incidents are recorded separately and do not count toward unsafe acts and conditions.
+Closed incidents count toward the control history too (ten of them, none on lashing).
 """
 
 from datetime import datetime, timedelta
@@ -52,23 +52,20 @@ GROUP_PLAN: dict[str, tuple[int, dict[str, tuple[int, int]]]] = {
 # events per worker-hour sit near the site rate, and lashing sits at 1.3 times it.
 CONDITIONS = {
     "LASH_DECK": 7,
-    "TT_DRIVING": 8,
+    "TT_DRIVING": 6,
     "REACH_STACKER": 3,
     "MOORING": 1,
-    "QC_OPS": 3,
+    "QC_OPS": 2,
     "HOT_WORK": 1,
-    "TWIST_GROUND": 2,
-    "REEFER": 1,
-    "WORKSHOP_MECH": 1,
+    "TWIST_GROUND": 1,
 }
 NEAR_MISSES = {
     "LASH_DECK": 3,
-    "TT_DRIVING": 5,
+    "TT_DRIVING": 3,
     "REACH_STACKER": 2,
     "MOORING": 1,
     "QC_OPS": 1,
     "TWIST_GROUND": 1,
-    "WORKSHOP_MECH": 1,
 }
 
 TEXT = {

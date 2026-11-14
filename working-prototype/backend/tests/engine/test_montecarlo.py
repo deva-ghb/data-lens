@@ -33,9 +33,10 @@ def test_same_seed_same_result(scenario: Session) -> None:
     )
 
 
-def test_hotter_forecast_raises_conditions_share(scenario: Session) -> None:
+def test_wider_forecast_spread_widens_the_band(scenario: Session) -> None:
     shift = _night(scenario)
     run_scores(scenario, shift.id, RunKind.EVENING)
-    calm = split_risk(scenario, shift.id, n=600, wbgt_sd=0.5)
-    uncertain = split_risk(scenario, shift.id, n=600, wbgt_sd=3.0)
-    assert uncertain.conditions_share > calm.conditions_share
+    narrow = split_risk(scenario, shift.id, n=600, wbgt_sd=0.5)
+    wide = split_risk(scenario, shift.id, n=600, wbgt_sd=4.0)
+    assert (wide.p90 - wide.p10) >= (narrow.p90 - narrow.p10)
+    assert wide.conditions_share == narrow.conditions_share

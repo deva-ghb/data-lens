@@ -1,19 +1,25 @@
-"""Split tomorrow's risk between conditions and crew.
+"""Split tomorrow's risk between conditions and crew, with an uncertainty band.
 
-A Monte Carlo run over the uncertain inputs: the forecast WBGT (normal, sd 1.5 C by
-default), attendance (from absence history, about 3 percent) and how each worker will
-feel at check-in. The share of variance that comes from conditions is the argument for
-moving a work window; the share from the crew is the argument for swapping a worker.
+The split answers "is this a night to move the work window, or to swap people?". For
+each scored worker, the risk above baseline is divided between the condition layer
+(heat, night, dust, pace, camp recovery) and the profile layer (the person's readiness),
+in proportion to each layer's share of log R. The crew's totals give the shares.
+
+A Monte Carlo run over the uncertain inputs then gives a band around tomorrow's total
+excess risk: the forecast WBGT (normal, sd 1.5 C by default), attendance (about 3 percent
+absent) and tired check-ins (about 10 percent). If there is no forecast for the shift,
+the result says so instead of assuming one.
 """
 
 from dataclasses import dataclass
 from datetime import timedelta
+from math import log
 
 import numpy as np
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.engine.layers import hazards_of, peak_wbgt
+from app.engine.layers import hazards_of, live_window, peak_wbgt
 from app.engine.run import latest_run
 from app.engine.weights import load_weights
 from app.feeds.wbgt import TIER_FLOORS
@@ -33,10 +39,7 @@ class SplitResult:
     p90: float
     workers: int
     peak_wbgt: float | None
-
-
-def _tiers(wbgt: np.ndarray) -> np.ndarray:
-    return np.searchsorted(np.array(TIER_FLOORS), wbgt, side="right")
+    forecast_missing: bool
 
 
 def split_risk(
@@ -48,16 +51,30 @@ def split_risk(
     weights = load_weights(session)
     shift = session.get_one(Shift, shift_id)
     rows = session.execute(
-        select(AssignmentScore.r, AssignmentScore.drivers_json, Assignment.activity_id)
+        select(
+            AssignmentScore.r,
+            AssignmentScore.condition,
+            AssignmentScore.profile,
+            AssignmentScore.drivers_json,
+            Assignment.activity_id,
+        )
         .join(Assignment, Assignment.id == AssignmentScore.assignment_id)
         .where(AssignmentScore.run_id == run.id)
     ).all()
-    peak, _ = peak_wbgt(
-        session,
-        shift.start_at - timedelta(hours=12),
-        shift.end_at,
-        ConditionsSource(run.conditions_source),
-    )
+
+    source = ConditionsSource(run.conditions_source)
+    window = (shift.start_at - timedelta(hours=12), shift.end_at)
+    if source == ConditionsSource.LIVE:
+        span = live_window(session)
+        if span is not None:
+            window = (span[0], min(span[0] + timedelta(hours=36), span[1]))
+    peak, _ = peak_wbgt(session, window[0], window[1], source)
+
+    cond_log = sum(max(log(row.condition), 0.0) for row in rows)
+    prof_log = sum(max(log(row.profile), 0.0) for row in rows)
+    total_log = cond_log + prof_log
+    conditions_share = cond_log / total_log if total_log > 0 else 0.5
+
     r = np.array([row.r for row in rows], dtype=float)
     heat_now = np.array(
         [
@@ -65,42 +82,37 @@ def split_risk(
             for row in rows
         ]
     )
-    hazard_cache: dict[int, list[str]] = {}
-    heat_sens, acute_sens = [], []
-    for row in rows:
-        hazards = hazard_cache.setdefault(row.activity_id, hazards_of(session, row.activity_id))
-        heat_sens.append(weights.sensitivity(hazards, "heat_strain"))
-        acute_sens.append(weights.sensitivity(hazards, "acute"))
-    heat_sens_a, acute_sens_a = np.array(heat_sens), np.array(acute_sens)
+    hazards: dict[int, list[str]] = {}
+    heat_sens = np.array(
+        [
+            weights.sensitivity(
+                hazards.setdefault(row.activity_id, hazards_of(session, row.activity_id)),
+                "heat_strain",
+            )
+            for row in rows
+        ]
+    )
+    acute_sens = np.array([weights.sensitivity(hazards[row.activity_id], "acute") for row in rows])
+    rng = np.random.default_rng(seed)
     base = r / heat_now
     heat_by_tier = np.array([weights.heat_by_tier[t] for t in sorted(weights.heat_by_tier)])
-    rng = np.random.default_rng(seed)
-    centre = peak if peak is not None else 30.0
-
-    def conditions(samples: int) -> np.ndarray:
-        wbgt = rng.normal(centre, wbgt_sd, samples)
-        c = heat_by_tier[_tiers(wbgt)]
-        return 1 + np.outer(c - 1, heat_sens_a)  # samples x workers
-
-    def crew(samples: int) -> np.ndarray:
-        present = rng.random((samples, len(r))) > ABSENCE_RATE
-        tired = rng.random((samples, len(r))) < TIRED_RATE
-        return present * (1 + tired * (weights.acute["tired"] - 1) * acute_sens_a)
-
-    mean_heat = conditions(4000).mean(axis=0)
-    mean_crew = crew(4000).mean(axis=0)
-    full = (base * conditions(n) * crew(n)).sum(axis=1)
-    cond_only = (base * conditions(n) * mean_crew).sum(axis=1)
-    crew_only = (base * mean_heat * crew(n)).sum(axis=1)
-    var_c, var_w = float(cond_only.var()), float(crew_only.var())
-    total_var = var_c + var_w
-    conditions_share = var_c / total_var if total_var > 0 else 0.5
+    if peak is None:
+        heat = np.repeat(heat_now[None, :], n, axis=0)
+    else:
+        wbgt = rng.normal(peak, wbgt_sd, n)
+        tiers = np.searchsorted(np.array(TIER_FLOORS), wbgt, side="right")
+        heat = 1 + np.outer(heat_by_tier[tiers] - 1, heat_sens)
+    present = rng.random((n, len(r))) > ABSENCE_RATE
+    tired = rng.random((n, len(r))) < TIRED_RATE
+    crew = present * (1 + tired * (weights.acute["tired"] - 1) * acute_sens)
+    excess = ((base * heat * crew) - present).clip(min=0).sum(axis=1)
     return SplitResult(
-        total_expected=round(float(full.mean()), 2),
+        total_expected=round(float(excess.mean()), 2),
         conditions_share=round(conditions_share, 3),
-        crew_share=round(1 - conditions_share, 3),
-        p10=round(float(np.percentile(full, 10)), 2),
-        p90=round(float(np.percentile(full, 90)), 2),
+        crew_share=round(1 - round(conditions_share, 3), 3),
+        p10=round(float(np.percentile(excess, 10)), 2),
+        p90=round(float(np.percentile(excess, 90)), 2),
         workers=len(r),
         peak_wbgt=peak,
+        forecast_missing=peak is None,
     )

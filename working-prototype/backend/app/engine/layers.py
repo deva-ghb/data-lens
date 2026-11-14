@@ -1,8 +1,9 @@
 """The four risk layers that multiply into R.
 
 - Intrinsic: the activity's grade sets the scale and the tier thresholds (value 1.0).
-- Control: how well controls held on this activity, from 12 months of unsafe acts,
-  behaviours, conditions and near misses per worker-hour, against the site.
+- Control: how well controls held on this activity, from 12 months of confirmed unsafe
+  acts, behaviours, conditions, near misses and incidents per worker-hour, against the
+  site. Exposure hours come from the activity register, not the roster.
 - Condition: tomorrow's shift as it will be: heat, night, dust, pace, and how the
   worker's accommodation recovered overnight.
 - Profile: the person's readiness vector, weighted by how sensitive the activity is.
@@ -26,6 +27,7 @@ from app.models import (
     Feed,
     FeedReading,
     Hazard,
+    Incident,
     NearMiss,
     Observation,
     Person,
@@ -34,7 +36,7 @@ from app.models import (
     Zone,
 )
 from app.models.feeds import FeedSource
-from app.models.records import ObservationKind
+from app.models.records import ObservationKind, RecordStatus
 from app.models.roster import ShiftKind
 from app.models.scores import ConditionsSource
 
@@ -52,6 +54,7 @@ class LayerResult:
     value: float
     drivers: list[dict[str, Any]] = field(default_factory=list)
     late_feeds: list[str] = field(default_factory=list)
+    heat_tier: int | None = None
 
 
 def hazards_of(session: Session, activity_id: int) -> list[str]:
@@ -66,30 +69,46 @@ def hazards_of(session: Session, activity_id: int) -> list[str]:
 
 
 def _uabc_by_activity(session: Session, start: datetime, end: datetime) -> dict[int, int]:
+    """Confirmed records only: observation cards (signed by the observer), and near misses
+    and incidents once the HSE team has closed them. An open report moves nothing."""
     counts: dict[int, int] = {}
-    for activity_id, n in session.execute(
-        select(Observation.activity_id, func.count())
-        .where(Observation.kind.in_(UABC_KINDS), Observation.at >= start, Observation.at < end)
-        .group_by(Observation.activity_id)
-    ):
-        counts[activity_id] = counts.get(activity_id, 0) + n
-    for activity_id, n in session.execute(
-        select(NearMiss.activity_id, func.count())
-        .where(NearMiss.at >= start, NearMiss.at < end)
-        .group_by(NearMiss.activity_id)
-    ):
-        counts[activity_id] = counts.get(activity_id, 0) + n
+
+    def add(rows: Any) -> None:
+        for activity_id, n in rows:
+            counts[activity_id] = counts.get(activity_id, 0) + n
+
+    add(
+        session.execute(
+            select(Observation.activity_id, func.count())
+            .where(Observation.kind.in_(UABC_KINDS), Observation.at >= start, Observation.at < end)
+            .group_by(Observation.activity_id)
+        )
+    )
+    add(
+        session.execute(
+            select(NearMiss.activity_id, func.count())
+            .where(NearMiss.status == RecordStatus.CLOSED, NearMiss.at >= start, NearMiss.at < end)
+            .group_by(NearMiss.activity_id)
+        )
+    )
+    add(
+        session.execute(
+            select(Incident.activity_id, func.count())
+            .where(Incident.status == RecordStatus.CLOSED, Incident.at >= start, Incident.at < end)
+            .group_by(Incident.activity_id)
+        )
+    )
     return counts
 
 
-def control_rates(session: Session, at: datetime, weights: Weights) -> dict[int, dict[str, Any]]:
-    """Each graded activity's events and rate per 1,000 worker-hours, and the site's."""
-    key = ("control_rates", at.date(), weights.id)
+def control_rates(session: Session, as_of: datetime, weights: Weights) -> dict[int, dict[str, Any]]:
+    """Each activity's confirmed events and rate per 1,000 worker-hours over the 12 months
+    up to `as_of`, and the site's rate across grade 3 to 5 work."""
+    key = ("control_rates", as_of, weights.id)
     if key in session.info:
         return session.info[key]
-    start = datetime(at.year, at.month, at.day) - timedelta(days=weights.control_window_days)
-    end = datetime(at.year, at.month, at.day)
-    counts = _uabc_by_activity(session, start, end)
+    start = as_of - timedelta(days=weights.control_window_days)
+    counts = _uabc_by_activity(session, start, as_of)
     weeks = weights.control_window_days / 7
     activities = session.execute(select(Activity.id, Activity.grade, Activity.exposure_hours_week))
     out: dict[int, dict[str, Any]] = {}
@@ -109,8 +128,8 @@ def control_rates(session: Session, at: datetime, weights: Weights) -> dict[int,
     return out
 
 
-def control(session: Session, activity_id: int, at: datetime, weights: Weights) -> LayerResult:
-    row = control_rates(session, at, weights)[activity_id]
+def control(session: Session, activity_id: int, as_of: datetime, weights: Weights) -> LayerResult:
+    row = control_rates(session, as_of, weights)[activity_id]
     ratio = row["rate"] / row["site_rate"] if row["site_rate"] else 1.0
     k = weights.control_formula_k
     caps = weights.factor_caps
@@ -159,8 +178,21 @@ def peak_wbgt(
         if "temp_c" in values and "rh_pct" in values:
             wbgt = estimate_wbgt(values["temp_c"], values["rh_pct"], values.get("radiation_wm2", 0))
             best = wbgt if best is None else max(best, wbgt)
-    latest = max(hours) if hours else None
-    return best, latest
+    issued = max(hours) if hours else None
+    return best, issued
+
+
+def _freshness(session: Session, as_of: datetime, source: ConditionsSource) -> float | None:
+    """Hours since the forecast feed last delivered a reading, as of the cut-off time."""
+    wanted = FeedSource.LIVE if source == ConditionsSource.LIVE else FeedSource.SEEDED
+    latest = session.scalar(
+        select(func.max(FeedReading.at)).where(
+            FeedReading.feed_id == _feed_id(session, "WEATHER"),
+            FeedReading.source == wanted,
+            FeedReading.at <= as_of,
+        )
+    )
+    return None if latest is None else round((as_of - latest).total_seconds() / 3600, 1)
 
 
 def live_window(session: Session) -> tuple[datetime, datetime] | None:
@@ -224,13 +256,14 @@ def condition(
         )
     else:
         tier = heat_tier(wbgt)
+        result.heat_tier = tier
         label = "live forecast" if source == ConditionsSource.LIVE else "forecast"
         add(
             "heat",
             weights.heat_by_tier[tier],
             "heat_strain",
             "Weather forecast (live)" if source == ConditionsSource.LIVE else "Weather forecast",
-            0.0 if issued is None else max((as_of - issued).total_seconds() / 3600, 0.0),
+            _freshness(session, as_of, source),
             f"Peak WBGT {wbgt:.1f} C in the {label}: heat tier {tier}",
         )
 

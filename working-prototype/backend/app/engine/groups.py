@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.engine.group_defs import GROUPS, classify_group
 from app.models import (
+    Absence,
     Activity,
     Assignment,
     Competency,
@@ -90,6 +91,13 @@ def memberships(session: Session, as_of: datetime) -> dict[int, str | None]:
         )
     ):
         nights[pid].add(day)
+    # Nights worked, not just rostered.
+    for pid, day in session.execute(
+        select(Absence.person_id, Absence.date).where(
+            Absence.date >= window_start.date(), Absence.date <= as_of.date()
+        )
+    ):
+        nights[pid].discard(day)
     result: dict[int, str | None] = {}
     for pid, hire, induction in workers:
         history = {

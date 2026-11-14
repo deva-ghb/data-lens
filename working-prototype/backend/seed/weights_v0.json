@@ -25,7 +25,7 @@
   "physical": {"fit_with_restrictions": 1.2, "per_lab_flag": 0.1},
   "condition_terms": {
     "heat": {"dimension": "heat_strain"},
-    "night": {"dimension": "fatigue", "value": 1.15},
+    "night": {"dimension": "fatigue", "value": 1.12},
     "dust": {"dimension": "physical", "pm10_steps": [[150, 1.1], [250, 1.2]]},
     "pace": {"dimension": "safety_behaviour", "vessel_call": 1.08},
     "camp_recovery": {"dimension": "fatigue", "per_fraction_down": 1.0}

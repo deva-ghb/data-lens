@@ -11,7 +11,7 @@ from datetime import date, timedelta
 import numpy as np
 
 from seed.catalog import KEY_USERS
-from seed.names import DISPLAY_LANGUAGES, FIRST_NAMES, LAST_NAMES
+from seed.names import DISPLAY_LANGUAGES, REGION_WEIGHTS, REGIONS
 from seed.scenario import ROSTER_START, STORY_DATE
 
 PATTERN_A = "DDDONNNO"  # at most three nights in a row
@@ -143,9 +143,13 @@ class _Namer:
         self.used: set[str] = {u.email.split("@")[0] for u in KEY_USERS}
 
     def next(self) -> tuple[str, str]:
+        regions = list(REGION_WEIGHTS)
+        weights = [REGION_WEIGHTS[r] for r in regions]
         while True:
-            first = FIRST_NAMES[int(self.rng.integers(0, len(FIRST_NAMES)))]
-            last = LAST_NAMES[int(self.rng.integers(0, len(LAST_NAMES)))]
+            region = regions[int(self.rng.choice(len(regions), p=weights))]
+            firsts, lasts = REGIONS[region]
+            first = firsts[int(self.rng.integers(0, len(firsts)))]
+            last = lasts[int(self.rng.integers(0, len(lasts)))]
             local = f"{first}.{last}".lower()
             if local not in self.used:
                 self.used.add(local)
@@ -178,7 +182,7 @@ def _cohort_record(cohort: str, rng: np.random.Generator) -> tuple[date, str, di
     if cohort == "driver_mid":
         hire = _months_ago(14 + r() * 60)
         return hire, "site", {"DRIVING_REFRESHER": _months_ago(7.5 + r() * 9.5)}
-    hire = _months_ago(4 + r() * 100)
+    hire = _months_ago(7 + r() * 97)  # nobody outside the story cohorts is a new arrival
     return hire, ("site" if r() < 0.6 else "contractor"), {}
 
 

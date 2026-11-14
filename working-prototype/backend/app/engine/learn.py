@@ -55,6 +55,12 @@ def propose_weights_from_outcomes(session: Session) -> WeightsVersion | None:
     body["version"] = version
     direction = "Raise" if step > 0 else "Lower"
     body["note"] = f"{direction} every tier threshold by {abs(step):.2f}: {why} in 90 days."
+    pending = session.scalars(
+        select(WeightsVersion).where(WeightsVersion.status == WeightsStatus.PROPOSED)
+    ).all()
+    for existing in pending:
+        if existing.body_json.get("thresholds") == body["thresholds"]:
+            return existing  # the same change is already waiting for a person
     proposal = WeightsVersion(version=version, status=WeightsStatus.PROPOSED, body_json=body)
     session.add(proposal)
     session.flush()
@@ -73,6 +79,14 @@ def approve_weights(session: Session, version_id: int, actor: Person | None) -> 
     proposal = session.get_one(WeightsVersion, version_id)
     if proposal.status != WeightsStatus.PROPOSED:
         raise ValueError("Only a proposed weights version can be approved.")
+    # A proposal is a change to the version that was active when it was made. Any other
+    # proposals still pending are stale once this one is approved.
+    for stale in session.scalars(
+        select(WeightsVersion).where(
+            WeightsVersion.status == WeightsStatus.PROPOSED, WeightsVersion.id != proposal.id
+        )
+    ):
+        stale.status = WeightsStatus.RETIRED
     for active in session.scalars(
         select(WeightsVersion).where(WeightsVersion.status == WeightsStatus.ACTIVE)
     ):

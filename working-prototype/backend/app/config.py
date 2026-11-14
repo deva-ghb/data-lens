@@ -1,3 +1,4 @@
+import secrets
 from pathlib import Path
 
 from pydantic import Field, field_validator
@@ -6,8 +7,20 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # working-prototype/.env, two levels above this file's package directory.
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
-# Fixed secret for local prototype use only. Set DATALENS_JWT_SECRET to override.
-DEFAULT_DEV_JWT_SECRET = "datalens-local-dev-secret-change-me"
+# Without DATALENS_JWT_SECRET, a random secret is generated once and kept in
+# backend/data/.secret (git-ignored), so no signing key ever lives in the source.
+SECRET_FILE = Path(__file__).resolve().parents[1] / "data" / ".secret"
+
+
+def local_secret() -> str:
+    if SECRET_FILE.exists():
+        return SECRET_FILE.read_text().strip()
+    SECRET_FILE.parent.mkdir(parents=True, exist_ok=True)
+    value = secrets.token_hex(32)
+    SECRET_FILE.write_text(value)
+    SECRET_FILE.chmod(0o600)
+    return value
+
 
 _OPENAI_MARKER = "/openai/"
 
@@ -25,7 +38,7 @@ class Settings(BaseSettings):
     azure_openai_api_key: str | None = None
     ai_text_model: str = "gpt-6-luna"
     ai_decisions_model: str = "gpt-6-luna"
-    jwt_secret: str = Field(default=DEFAULT_DEV_JWT_SECRET, validation_alias="DATALENS_JWT_SECRET")
+    jwt_secret: str = Field(default_factory=local_secret, validation_alias="DATALENS_JWT_SECRET")
 
     @field_validator("azure_openai_endpoint", "azure_openai_api_key", mode="before")
     @classmethod

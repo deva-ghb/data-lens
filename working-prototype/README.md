@@ -46,8 +46,7 @@ Press Ctrl+C once to stop both.
 
 Settings are read from the environment and from the root `.env` file.
 `DATALENS_JWT_SECRET` sets the secret used to sign login tokens.
-If it is not set, a fixed development default is used, which is fine for a local prototype only.
-To make your own, run `python3 -c "import secrets; print(secrets.token_urlsafe(48))"` and put the result in `.env` as `DATALENS_JWT_SECRET=...`.
+If it is not set, a random secret is generated on first run and kept in `backend/data/.secret`, which git ignores.
 The session cookie is `dl_session`, valid for 12 hours.
 `DATABASE_URL` defaults to `sqlite:///data/datalens.db`, relative to the `backend` folder.
 

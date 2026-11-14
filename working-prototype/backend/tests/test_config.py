@@ -1,6 +1,6 @@
 import pytest
 
-from app.config import DEFAULT_DEV_JWT_SECRET, Settings
+from app.config import Settings, local_secret
 
 AZURE_ENV_NAMES = ("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY")
 
@@ -52,11 +52,14 @@ def test_defaults():
     assert settings.azure_openai_endpoint is None
     assert settings.ai_text_model == "gpt-6-luna"
     assert settings.ai_decisions_model == "gpt-6-luna"
-    assert settings.jwt_secret == DEFAULT_DEV_JWT_SECRET
+    assert settings.jwt_secret == local_secret()
+    assert len(settings.jwt_secret) >= 32
 
 
 def test_jwt_secret_reads_env_and_falls_back_to_dev_default(monkeypatch):
     monkeypatch.setenv("DATALENS_JWT_SECRET", "from-env")
     assert make_settings().jwt_secret == "from-env"
     monkeypatch.delenv("DATALENS_JWT_SECRET")
-    assert make_settings().jwt_secret == DEFAULT_DEV_JWT_SECRET
+    fallback = make_settings().jwt_secret
+    assert fallback == local_secret()
+    assert fallback != "datalens-local-dev-secret-change-me"
