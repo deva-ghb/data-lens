@@ -81,6 +81,8 @@ EXPECTED_TABLES = {
     "assignment_scores",
     "swap_proposals",
     "contests",
+    # vessels (revision 0002)
+    "vessel_calls",
 }
 
 PROTECTED_WORDS = ("nationality", "religion", "ethnicity", "origin")

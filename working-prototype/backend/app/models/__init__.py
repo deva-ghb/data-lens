@@ -65,6 +65,7 @@ from app.models.roster import (
     Gang,
     Shift,
     ShiftKind,
+    VesselCall,
 )
 from app.models.scores import (
     AssignmentScore,
@@ -149,6 +150,7 @@ __all__ = [
     "ScoreRun",
     "Setting",
     "Shift",
+    "VesselCall",
     "ShiftKind",
     "SignalClass",
     "SiteClock",

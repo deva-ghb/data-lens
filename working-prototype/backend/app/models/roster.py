@@ -60,6 +60,8 @@ class Assignment(Base):
     person_id: Mapped[int] = mapped_column(ForeignKey("people.id"), index=True)
     activity_id: Mapped[int] = mapped_column(ForeignKey("activities.id"), index=True)
     gang_id: Mapped[int | None] = mapped_column(ForeignKey("gangs.id"), index=True)
+    # Where the work happens (a berth or yard block); null for site-wide work such as the gate.
+    zone_id: Mapped[int | None] = mapped_column(ForeignKey("zones.id"), index=True)
     source: Mapped[AssignmentSource] = mapped_column(default=AssignmentSource.ROSTER)
 
 
@@ -85,3 +87,16 @@ class Absence(Base):
     date: Mapped[date]
     # For example "sickness" or "leave".
     kind: Mapped[str] = mapped_column(String(32))
+
+
+class VesselCall(Base):
+    """A vessel alongside a berth. Drives the pace of work on that berth's shifts."""
+
+    __tablename__ = "vessel_calls"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    vessel_name: Mapped[str] = mapped_column(String(80))
+    berth_zone_id: Mapped[int] = mapped_column(ForeignKey("zones.id"), index=True)
+    arrives_at: Mapped[datetime] = mapped_column(index=True)
+    departs_at: Mapped[datetime]
+    moves_planned: Mapped[int]

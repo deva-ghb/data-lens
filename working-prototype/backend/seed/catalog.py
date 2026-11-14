@@ -296,6 +296,23 @@ ACTIVITIES: list[ActivityDef] = [
 ]
 
 
+JOB_TITLES = {
+    "LASH_DECK": "Lasher",
+    "QC_OPS": "Quay crane operator",
+    "MOORING": "Mooring hand",
+    "HOLD_CONFINED": "Hold cleaner",
+    "HOT_WORK": "Welder",
+    "REACH_STACKER": "Reach stacker operator",
+    "TT_DRIVING": "Terminal tractor driver",
+    "TWIST_GROUND": "Ground twist-lock handler",
+    "REEFER": "Reefer technician",
+    "WORKSHOP_MECH": "Mechanic",
+    "CONTAINER_INSPECT": "Container inspector",
+    "YARD_HOUSEKEEPING": "Yard hand",
+    "GATE_CLERK": "Gate clerk",
+}
+
+
 @dataclass(frozen=True)
 class GroupDef:
     code: str
@@ -405,6 +422,8 @@ ZONES: list[ZoneDef] = [
     ZoneDef("Mirsal Village District", "district"),
     *[ZoneDef(f"Berth {n}", "berth", "Mirsal Port District") for n in range(1, 5)],
     *[ZoneDef(f"Yard Block {n}", "yard_block", "Mirsal Port District") for n in range(1, 7)],
+    ZoneDef("Workshop Area", "yard_block", "Mirsal Port District"),
+    ZoneDef("Gate Complex", "yard_block", "Mirsal Port District"),
     *[ZoneDef(f"Camp Block {c}", "camp_block", "Mirsal Village District") for c in "ABCDE"],
 ]
 
