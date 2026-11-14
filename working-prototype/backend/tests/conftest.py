@@ -15,6 +15,8 @@ from pathlib import Path
 
 _IMPORT_GUARD_DIR = Path(tempfile.mkdtemp(prefix="datalens-tests-"))
 os.environ["DATABASE_URL"] = f"sqlite:///{_IMPORT_GUARD_DIR / 'import-guard.db'}"
+os.environ["DATALENS_MEDIA_DIR"] = str(_IMPORT_GUARD_DIR / "media")  # never the real media folder
+os.environ["DATALENS_LIVE_WEATHER"] = "0"
 
 import pytest  # noqa: E402
 from sqlalchemy.engine import Engine  # noqa: E402

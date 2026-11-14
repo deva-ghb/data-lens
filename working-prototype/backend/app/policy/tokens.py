@@ -15,3 +15,12 @@ def shift_token(person_id: int, shift_id: int) -> str:
         settings.jwt_secret.encode(), f"{person_id}:{shift_id}".encode(), hashlib.sha256
     ).hexdigest()
     return f"st-{digest[:24]}"
+
+
+def person_token(person_id: int) -> str:
+    """Stands in for a person in audit entries about their health, so the employer's
+    view of the trail never names whose health record changed."""
+    digest = hmac.new(
+        settings.jwt_secret.encode(), f"person:{person_id}".encode(), hashlib.sha256
+    ).hexdigest()
+    return f"pt-{digest[:24]}"

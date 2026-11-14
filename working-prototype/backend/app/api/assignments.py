@@ -175,7 +175,7 @@ def roster(
                 },
                 "contest": None
                 if contest is None
-                else {"status": contest.status.value, "text": contest.text},
+                else {"id": contest.id, "status": contest.status.value, "text": contest.text},
             }
         )
     rows.sort(key=lambda r: (-(r["r"] or 0), r["worker"]))
@@ -273,7 +273,12 @@ def layer_build(
     act = session.get_one(Activity, assignment.activity_id)
     person = session.get_one(Person, assignment.person_id)
     weights = load_weights(session)
-    drivers = [d for d in s.drivers_json if d.get("layer") != "summary"]
+    # The behavioural group stays inside the score; it is never shown against a name.
+    drivers = [
+        d
+        for d in s.drivers_json
+        if d.get("layer") != "summary" and d.get("name") != "safety_behaviour"
+    ]
     return {
         "worker": f"{person.first_name} {person.last_name}",
         "activity": act.name,
@@ -389,7 +394,7 @@ def decline(
 def _manager(user: Person = Depends(require_scope("swap_proposals"))) -> Person:
     from app.models import Role
 
-    if user.role not in (Role.SHIFT_MANAGER, Role.HSE_HEAD):
+    if user.role != Role.SHIFT_MANAGER:
         raise ApiError(403, "forbidden", "Only the shift manager approves a reassignment.")
     return user
 
@@ -438,10 +443,14 @@ def swaps(
         .order_by(SwapProposal.id.desc())
     )
     if status:
-        query = query.where(SwapProposal.status == SwapStatus(status))
+        try:
+            wanted = SwapStatus(status)
+        except ValueError:
+            raise ApiError(422, "invalid_input", "Unknown swap status.") from None
+        query = query.where(SwapProposal.status == wanted)
     out = []
     for sp, asg, p, to in session.execute(query):
-        current = session.get_one(Activity, asg.activity_id)
+        current = session.get_one(Activity, sp.from_activity_id or asg.activity_id)
         shift = session.get_one(Shift, asg.shift_id)
         out.append(
             {
@@ -481,3 +490,91 @@ def risk_split(
 
 
 __all__ = ["router", "score"]
+
+
+class KeepBody(BaseModel):
+    reason: str
+
+
+@router.post("/assignments/{assignment_id}/keep")
+def keep(
+    assignment_id: int,
+    body: KeepBody,
+    session: SessionDep,
+    user: Person = Depends(require_scope("site_tiers")),
+) -> dict[str, Any]:
+    """Settle a Reassign today without moving the worker: the planner keeps them on the
+    work with extra controls and a logged reason. Covers workers with no proposal too."""
+    if user.role.value != "planner":
+        raise ApiError(403, "forbidden", "Only the planner settles a reassignment.")
+    if not body.reason.strip():
+        raise ApiError(422, "invalid_input", "Please say why the worker stays on this work.")
+    assignment = session.get(Assignment, assignment_id)
+    if assignment is None:
+        raise not_found("assignment")
+    proposal = session.scalars(
+        select(SwapProposal)
+        .where(SwapProposal.assignment_id == assignment_id)
+        .order_by(SwapProposal.id.desc())
+    ).first()
+    if proposal is not None and proposal.status in (SwapStatus.APPROVED, SwapStatus.DECLINED):
+        raise conflict("This reassignment is already settled.")
+    if proposal is None or proposal.status not in (SwapStatus.PROPOSED, SwapStatus.ACCEPTED):
+        run = latest_run(session, assignment.shift_id)
+        if run is None:
+            raise conflict("Score the shift first.")
+        proposal = SwapProposal(
+            run_id=run.id,
+            assignment_id=assignment_id,
+            to_activity_id=assignment.activity_id,
+            from_activity_id=assignment.activity_id,
+            status=SwapStatus.PROPOSED,
+            reason="Kept on the same work with extra controls",
+        )
+        session.add(proposal)
+        session.flush()
+    return _move(
+        session,
+        proposal,
+        SwapStatus.DECLINED,
+        user,
+        body.reason.strip(),
+        (SwapStatus.PROPOSED, SwapStatus.ACCEPTED),
+    )
+
+
+class ResolveBody(BaseModel):
+    status: str
+    note: str | None = None
+
+
+@router.post("/contests/{contest_id}/resolve")
+def resolve_contest(
+    contest_id: int,
+    body: ResolveBody,
+    session: SessionDep,
+    user: Person = Depends(require_scope("site_tiers")),
+) -> dict[str, Any]:
+    from app.models.scores import ContestStatus
+
+    contest = session.get(Contest, contest_id)
+    if contest is None:
+        raise not_found("contest")
+    if contest.status != ContestStatus.OPEN:
+        raise conflict("This contest is already answered.")
+    if body.status not in ("upheld", "dismissed"):
+        raise ApiError(422, "invalid_input", "Uphold or dismiss the contest.")
+    contest.status = ContestStatus(body.status)
+    if body.note and body.note.strip():
+        contest.text = f"{contest.text}\n\nPlanner: {body.note.strip()}"
+    score_row = session.get_one(AssignmentScore, contest.assignment_score_id)
+    assignment = session.get_one(Assignment, score_row.assignment_id)
+    audit(
+        session,
+        user,
+        f"contest_{body.status}",
+        "reassignment",
+        shift_token(assignment.person_id, assignment.shift_id),
+    )
+    session.commit()
+    return {"id": contest.id, "status": contest.status.value}

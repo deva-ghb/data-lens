@@ -1,3 +1,6 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import APIRouter, FastAPI
 
 from app.api.actions import router as actions_router
@@ -40,6 +43,18 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-app = FastAPI(title="Data Lens")
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Bring the database up to the current schema, then start the hourly live weather pull."""
+    from app.feeds import scheduler
+    from app.migrate import upgrade_to_head
+
+    upgrade_to_head()
+    scheduler.start()
+    yield
+    scheduler.stop()
+
+
+app = FastAPI(title="Data Lens", lifespan=lifespan)
 install_error_handlers(app)
 app.include_router(api)

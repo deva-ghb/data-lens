@@ -53,8 +53,12 @@ def _key(column: str) -> str:
 
 def propose_mapping(session: Session, name: str, csv_text: str) -> Proposal:
     reader = csv.DictReader(io.StringIO(csv_text))
-    rows = [dict(r) for r in reader]
-    header = list(reader.fieldnames or [])
+    rows = [{k: v for k, v in r.items() if k is not None} for r in reader]
+    header = [h for h in (reader.fieldnames or []) if h]
+    if not header:
+        raise ValueError("The file has no header row.")
+    if len(header) > 200:
+        raise ValueError("The file has more than 200 columns.")
     proposal = Proposal(name=name, header=header, rows=rows)
     sample = {col: [r.get(col, "") for r in rows[:SAMPLE_ROWS]] for col in header}
     questions = []
@@ -112,7 +116,10 @@ def confirm_mapping(
     by_field = {m.field: col for col, m in proposal.columns.items() if not m.free_text}
     if "at" not in by_field or "value" not in by_field:
         raise ValueError("A feed needs a date column and a value column.")
-    code = "UPLOAD_" + _key(proposal.name).upper()[:30]
+    base = "UPLOAD_" + _key(proposal.name).upper()[:30]
+    code, n = base, 2
+    while session.scalar(select(Feed.id).where(Feed.code == code)) is not None:
+        code, n = f"{base[:36]}_{n}", n + 1
     feed = Feed(
         code=code,
         name=proposal.name,

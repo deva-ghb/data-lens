@@ -101,7 +101,7 @@ def test_worker_sees_reason_in_display_language(api, fake_reason) -> None:  # ty
     assert me["language"] == "ne"
     assert "अर्जुन" in me["reason_local"]  # the seeded Nepali reason
     assert me["reason_en"].startswith("Arjun")
-    assert me["swap_to"] == "Ground twist-lock handling"
+    assert me["swap_to"] is None  # shown to the worker only once the shift manager approves
 
 
 def test_contest_creates_record_visible_to_planner(api) -> None:  # type: ignore[no-untyped-def]

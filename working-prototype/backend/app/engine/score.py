@@ -110,15 +110,17 @@ def score(
     checkin = inputs.latest_checkin
     outcome = inputs.fitness_outcome
     reason = ""
-    if (
+    # A clinician's outcome the worker chose not to share must not leak through the tier,
+    # so it is checked first: the planner sees Unknown, never a health-driven Refer.
+    if outcome is not None and not outcome.share_with_employer:
+        tier, reason = Tier.UNKNOWN, "Fitness outcome not shared by the worker"
+    elif (
         inputs.unwell_event
         or (checkin is not None and checkin.feeling == Feeling.UNWELL)
         or inputs.not_today
         or inputs.lab_flags >= 2
     ):
         tier, reason = Tier.REFER, "A health signal needs the clinician first"
-    elif outcome is not None and not outcome.share_with_employer:
-        tier, reason = Tier.UNKNOWN, "Fitness outcome not shared by the worker"
     elif require_checkin and checkin is None:
         tier, reason = Tier.UNKNOWN, "Has not checked in for this shift"
 

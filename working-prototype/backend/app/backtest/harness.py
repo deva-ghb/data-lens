@@ -181,6 +181,11 @@ def _store(
         }
         for r in results
     ]
+    line = session.get(Setting, "action_line")
+    if line is None:
+        session.add(Setting(key="action_line", value=chosen))
+    else:
+        line.value = chosen
     existing = session.get(Setting, "backtest_last")
     if existing is None:
         session.add(Setting(key="backtest_last", value=value))

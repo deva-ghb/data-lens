@@ -21,6 +21,7 @@ from app.models import (
     AuditEntry,
     CheckIn,
     Contest,
+    FitnessOutcome,
     Gang,
     LearningItem,
     LearningRead,
@@ -36,6 +37,7 @@ from app.models import (
 from app.models.learning import LearningStatus
 from app.models.roster import Feeling
 from app.models.scores import ContestStatus, SwapStatus
+from app.policy.tokens import person_token, shift_token
 
 router = APIRouter(prefix="/phone", tags=["phone"])
 
@@ -71,6 +73,39 @@ def _score(session, a: Assignment) -> AssignmentScore | None:  # type: ignore[no
     ).first()
 
 
+def _my_outcome(session, user: Person) -> dict[str, Any] | None:  # type: ignore[no-untyped-def]
+    o = session.scalars(
+        select(FitnessOutcome)
+        .where(FitnessOutcome.person_id == user.id)
+        .order_by(FitnessOutcome.at.desc())
+    ).first()
+    if o is None or o.at < site_now(session) - timedelta(days=30):
+        return None
+    return {
+        "id": o.id,
+        "outcome": o.outcome.value,
+        "shared": o.share_with_employer,
+        "at": o.at.isoformat(),
+    }
+
+
+class ConsentBody(BaseModel):
+    outcome_id: int
+    share: bool
+
+
+@router.post("/consent")
+def consent(body: ConsentBody, session: SessionDep, user: UserDep) -> dict[str, Any]:
+    """The worker decides whether the employer sees the clinician's outcome (never the reason)."""
+    o = session.get(FitnessOutcome, body.outcome_id)
+    if o is None or o.person_id != user.id:
+        raise not_found("outcome")
+    o.share_with_employer = body.share
+    audit(session, None, "outcome_consent_changed", "person", person_token(user.id))
+    session.commit()
+    return {"shared": o.share_with_employer}
+
+
 @router.get("/me")
 def me(session: SessionDep, user: UserDep) -> dict[str, Any]:
     a = _my_assignment(session, user)
@@ -94,6 +129,7 @@ def me(session: SessionDep, user: UserDep) -> dict[str, Any]:
         session.scalars(select(LearningRead.item_id).where(LearningRead.person_id == user.id))
     )
     out["cards_unread"] = len([c for c in cards if c not in read])
+    out["outcome"] = _my_outcome(session, user)
     if a is None:
         return out
     shift = session.get_one(Shift, a.shift_id)
@@ -120,7 +156,8 @@ def me(session: SessionDep, user: UserDep) -> dict[str, Any]:
         .where(SwapProposal.assignment_id == a.id)
         .order_by(SwapProposal.id.desc())
     ).first()
-    if swap is not None and swap.status != SwapStatus.DECLINED:
+    moved = swap is not None and swap.to_activity_id != swap.from_activity_id
+    if swap is not None and moved and swap.status == SwapStatus.APPROVED:
         out["swap_to"] = session.get_one(Activity, swap.to_activity_id).name
     reason = next((d.get("reason", "") for d in s.drivers_json if d.get("name") == "reason"), "")
     context = {
@@ -133,7 +170,13 @@ def me(session: SessionDep, user: UserDep) -> dict[str, Any]:
     if s.tier.value != "fit":
         out["reason_en"] = (
             get_or_draft(
-                session, "reason_translation", "assignment", a.id, context, "en", user.id
+                session,
+                "reason_translation",
+                f"assignment-{s.tier.value}",
+                a.id,
+                context,
+                "en",
+                user.id,
             ).content
             or reason
         )
@@ -142,7 +185,7 @@ def me(session: SessionDep, user: UserDep) -> dict[str, Any]:
                 get_or_draft(
                     session,
                     "reason_translation",
-                    "assignment",
+                    f"assignment-{s.tier.value}",
                     a.id,
                     context,
                     user.display_language,
@@ -154,6 +197,7 @@ def me(session: SessionDep, user: UserDep) -> dict[str, Any]:
     out["contest"] = (
         None if contest is None else {"status": contest.status.value, "text": contest.text}
     )
+    out["outcome"] = _my_outcome(session, user)
     session.commit()
     return out
 
@@ -206,6 +250,14 @@ def contest(body: ContestBody, session: SessionDep, user: UserDep) -> dict[str, 
         raise not_found("change to contest")
     if not body.text.strip():
         raise ApiError(422, "invalid_input", "Say in a few words why you disagree.")
+    if s.tier.value == "fit":
+        raise conflict("There is no change to contest.")
+    if session.scalars(
+        select(Contest.id).where(
+            Contest.assignment_score_id == s.id, Contest.status == ContestStatus.OPEN
+        )
+    ).first():
+        raise conflict("You have already contested this. The planner will reply.")
     session.add(
         Contest(
             assignment_score_id=s.id,
@@ -251,7 +303,8 @@ def unwell(session: SessionDep, user: UserDep) -> dict[str, Any]:
                 actor_id=None,
             )
         )
-    audit(session, user, "reported_unwell", "shift", str(a.shift_id))
+    # No name in the trail: the permit and the audit show only that a crew member was unwell.
+    audit(session, None, "reported_unwell", "reassignment", shift_token(user.id, a.shift_id))
     session.commit()
     return {
         "told": ["clinician"],

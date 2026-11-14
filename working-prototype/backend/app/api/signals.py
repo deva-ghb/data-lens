@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import func, select
 
-from app.api.common import SessionDep, not_found, require_scope
+from app.api.common import SessionDep, not_found, require_role, require_scope
 from app.clock import site_now
 from app.errors import ApiError
 from app.feeds.csv_connect import ColumnMap, Proposal, confirm_mapping, propose_mapping
@@ -96,13 +96,16 @@ def _proposal_out(pid: str, p: Proposal) -> dict[str, Any]:
 def connect(
     body: ConnectBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("aggregates", "admin")),
+    user: Person = Depends(require_role("hse_head", "admin")),
 ) -> dict[str, Any]:
     if not body.name.strip() or not body.csv.strip():
         raise ApiError(422, "invalid_input", "Give the feed a name and a CSV file.")
     if len(body.csv) > 2_000_000:
         raise ApiError(422, "invalid_input", "The file is too large for this prototype (2 MB).")
-    proposal = propose_mapping(session, body.name.strip(), body.csv)
+    try:
+        proposal = propose_mapping(session, body.name.strip(), body.csv)
+    except ValueError as error:
+        raise ApiError(422, "invalid_input", str(error)) from None
     pid = uuid.uuid4().hex[:12]
     session.add(
         Setting(
@@ -132,7 +135,7 @@ def confirm(
     pid: str,
     body: ConfirmBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("aggregates", "admin")),
+    user: Person = Depends(require_role("hse_head", "admin")),
 ) -> dict[str, Any]:
     stored = session.get(Setting, f"feed_proposal_{pid}")
     if stored is None:
@@ -143,7 +146,9 @@ def confirm(
     data = stored.value
     reader = csv.DictReader(io.StringIO(data["csv"]))
     proposal = Proposal(
-        name=data["name"], header=list(reader.fieldnames or []), rows=[dict(r) for r in reader]
+        name=data["name"],
+        header=[h for h in (reader.fieldnames or []) if h],
+        rows=[{k: v for k, v in r.items() if k is not None} for r in reader],
     )
     for col, m in data["columns"].items():
         field = body.fields.get(col, m["field"])

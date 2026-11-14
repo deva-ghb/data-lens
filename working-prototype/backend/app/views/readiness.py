@@ -33,15 +33,16 @@ def permit_readiness(session: Session, permit: Permit) -> dict[str, Any]:
                 AssignmentScore.run_id == run.id, AssignmentScore.assignment_id.in_(crew)
             )
         ).all()
-        settled = set(
-            session.scalars(
-                select(SwapProposal.assignment_id).where(
-                    SwapProposal.status.in_(
-                        [SwapStatus.APPROVED, SwapStatus.REJECTED, SwapStatus.DECLINED]
-                    )
-                )
-            )
-        )
+        latest: dict[int, SwapStatus] = {}
+        for sp in session.scalars(
+            select(SwapProposal)
+            .where(SwapProposal.assignment_id.in_(crew))
+            .order_by(SwapProposal.id)
+        ):
+            latest[sp.assignment_id] = sp.status
+        settled = {
+            aid for aid, st in latest.items() if st in (SwapStatus.APPROVED, SwapStatus.DECLINED)
+        }
         for s in scores:
             counts[s.tier.value] += 1
             confidences.append(s.confidence)
@@ -50,7 +51,9 @@ def permit_readiness(session: Session, permit: Permit) -> dict[str, Any]:
             for d in s.drivers_json:
                 if d.get("layer") in ("condition", "control") and d.get("contribution", 0) > 0.02:
                     drivers[d["reason"]] += 1
-    if open_reassign:
+    if run is None and crew:
+        status = "unscored"  # nobody has been scored: never shown as ready
+    elif open_reassign:
         status = "red"
     elif counts["fit_with_controls"] or counts["refer"] or counts["unknown"]:
         status = "amber"

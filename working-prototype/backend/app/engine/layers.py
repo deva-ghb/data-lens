@@ -196,14 +196,19 @@ def _freshness(session: Session, as_of: datetime, source: ConditionsSource) -> f
 
 
 def live_window(session: Session) -> tuple[datetime, datetime] | None:
-    """The span the live forecast covers, if a live pull has happened."""
-    first, last = session.execute(
-        select(func.min(FeedReading.at), func.max(FeedReading.at)).where(
+    """The next 36 hours of the live forecast, from real time now (not the site clock)."""
+    from datetime import UTC
+
+    now = datetime.now(UTC).replace(tzinfo=None, minute=0, second=0, microsecond=0)
+    latest = session.scalar(
+        select(func.max(FeedReading.at)).where(
             FeedReading.feed_id == _feed_id(session, "WEATHER"),
             FeedReading.source == FeedSource.LIVE,
         )
-    ).one()
-    return (first, last) if first else None
+    )
+    if latest is None or latest < now:
+        return None
+    return now, min(now + timedelta(hours=36), latest)
 
 
 def condition(

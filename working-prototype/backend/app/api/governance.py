@@ -28,7 +28,9 @@ def audit_trail(
     limit: int = 200,
     user: Person = Depends(_audit_reader),
 ) -> dict[str, Any]:
-    query = select(AuditEntry).order_by(AuditEntry.id.desc()).limit(min(limit, 1000))
+    if not 1 <= limit <= 1000:
+        raise ApiError(422, "invalid_input", "Ask for between 1 and 1,000 entries.")
+    query = select(AuditEntry).order_by(AuditEntry.id.desc()).limit(limit)
     if action:
         query = query.where(AuditEntry.action == action)
     redacted = user.role == Role.AUTHORITY

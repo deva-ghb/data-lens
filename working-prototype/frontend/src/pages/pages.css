@@ -1,0 +1,213 @@
+/* Shared page building blocks. */
+
+.grid {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid--main-side {
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  align-items: start;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.stack--tight {
+  gap: var(--space-1);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.row--between {
+  justify-content: space-between;
+}
+
+.muted {
+  color: var(--color-text-secondary);
+}
+
+.small {
+  font-size: var(--text-sm);
+  line-height: var(--text-sm-lh);
+}
+
+.xsmall {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs-lh);
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.kv dt {
+  color: var(--color-text-secondary);
+}
+
+.kv dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-half);
+  height: 24px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--tint-neutral-border);
+  background: var(--tint-neutral-fill);
+  color: var(--tint-neutral-ink);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.pill--periwinkle { background: var(--tint-periwinkle-fill); border-color: var(--tint-periwinkle-border); color: var(--tint-periwinkle-ink); }
+.pill--mint { background: var(--tint-mint-fill); border-color: var(--tint-mint-border); color: var(--tint-mint-ink); }
+.pill--sand { background: var(--tint-sand-fill); border-color: var(--tint-sand-border); color: var(--tint-sand-ink); }
+.pill--rose { background: var(--tint-rose-fill); border-color: var(--tint-rose-border); color: var(--tint-rose-ink); }
+.pill--lilac { background: var(--tint-lilac-fill); border-color: var(--tint-lilac-border); color: var(--tint-lilac-ink); }
+.pill--sky { background: var(--tint-sky-fill); border-color: var(--tint-sky-border); color: var(--tint-sky-ink); }
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.list > li {
+  padding: var(--space-1-5) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.list > li:last-child {
+  border-bottom: 0;
+}
+
+.link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: var(--weight-medium);
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.prose {
+  white-space: pre-line;
+  line-height: 1.6;
+  max-width: 78ch;
+}
+
+.section-title {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--weight-medium);
+}
+
+.decision {
+  display: flex;
+  gap: var(--space-1-5);
+  align-items: flex-start;
+  padding: var(--space-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-page);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.decision:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 1px 2px rgb(31 35 40 / 6%);
+}
+
+.decision__mark {
+  flex: none;
+  width: 8px;
+  align-self: stretch;
+  border-radius: var(--radius-pill);
+  background: var(--status-neutral-dot);
+}
+
+.decision--critical .decision__mark { background: var(--status-critical-dot); }
+.decision--warning .decision__mark { background: var(--status-warning-dot); }
+
+.decision__title {
+  font-weight: var(--weight-medium);
+}
+
+.question {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.question > :first-child {
+  flex: 1;
+}
+
+.answer {
+  padding: var(--space-2);
+  border-radius: var(--radius);
+  background: var(--tint-periwinkle-fill);
+  border: 1px solid var(--tint-periwinkle-border);
+}
+
+.answer--declined {
+  background: var(--tint-sand-fill);
+  border-color: var(--tint-sand-border);
+}
+
+@media (max-width: 1100px) {
+  .grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid--main-side { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 720px) {
+  .grid--2,
+  .grid--3,
+  .grid--4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A table inside an edge-to-edge card uses the card's frame, not its own. */
+.dl-card--flush .dl-table-wrap {
+  border: 0;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.dl-table td.row-head {
+  font-weight: var(--weight-medium);
+}

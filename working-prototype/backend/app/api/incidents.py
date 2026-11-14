@@ -7,6 +7,8 @@ record counts toward the activity's control history.
 """
 
 import base64
+import binascii
+import os
 import uuid
 from pathlib import Path
 from typing import Any
@@ -25,6 +27,7 @@ from app.api.common import (
     draft_out,
     not_found,
     person_name,
+    require_role,
     require_scope,
 )
 from app.audit import audit
@@ -51,7 +54,7 @@ from app.models.records import IncidentKind, RecordStatus
 from app.models.roster import ShiftKind
 
 router = APIRouter(tags=["incidents"])
-MEDIA = BACKEND_DIR / "data" / "media"
+MEDIA = Path(os.environ.get("DATALENS_MEDIA_DIR", str(BACKEND_DIR / "data" / "media")))
 KINDS = {"near_miss": NearMiss, "incident": Incident, "hazard": HazardReport}
 LEVELS = [
     ("1", "Minor"),
@@ -81,14 +84,27 @@ class ReportBody(BaseModel):
     photo: str | None = None  # a data URL from the phone camera
 
 
+MAX_PHOTO_BYTES = 6 * 1024 * 1024
+MAGIC = {b"\xff\xd8\xff": "jpg", b"\x89PNG\r\n\x1a\n": "png", b"RIFF": "webp"}
+
+
 def _save_photo(data_url: str) -> str:
+    """Store a phone photo. Only real JPEG, PNG or WebP images, at most 6 MB."""
     header, _, payload = data_url.partition(",")
-    if not header.startswith("data:image/") or not payload:
+    if not header.startswith("data:image/") or ";base64" not in header or not payload:
         raise ApiError(422, "invalid_input", "The photo could not be read.")
-    ext = "png" if "png" in header else "jpg"
+    try:
+        raw = base64.b64decode(payload, validate=True)
+    except (ValueError, binascii.Error):
+        raise ApiError(422, "invalid_input", "The photo could not be read.") from None
+    if len(raw) > MAX_PHOTO_BYTES:
+        raise ApiError(422, "invalid_input", "The photo is too large (6 MB at most).")
+    ext = next((e for magic, e in MAGIC.items() if raw.startswith(magic)), None)
+    if ext is None:
+        raise ApiError(422, "invalid_input", "Only JPEG, PNG or WebP photos can be attached.")
     MEDIA.mkdir(parents=True, exist_ok=True)
     key = f"{uuid.uuid4().hex}.{ext}"
-    (MEDIA / key).write_bytes(base64.b64decode(payload))
+    (MEDIA / key).write_bytes(raw)
     return key
 
 
@@ -326,7 +342,7 @@ def confirm(
     record_id: int,
     body: ConfirmBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("all_records")),
+    user: Person = Depends(require_role("hse_head")),
 ) -> dict[str, Any]:
     r = _get(session, kind, record_id)
     if r.status == RecordStatus.CLOSED:
@@ -415,7 +431,7 @@ QUESTIONS = {
 
 @router.post("/warnings/{warning_id}/inspection", status_code=201)
 def build_inspection(
-    warning_id: int, session: SessionDep, user: Person = Depends(require_scope("aggregates"))
+    warning_id: int, session: SessionDep, user: Person = Depends(require_role("hse_head"))
 ) -> dict[str, Any]:
     w = session.get(WarningRecord, warning_id)
     if w is None:
@@ -474,7 +490,7 @@ def record_check(
     check_id: int,
     body: CheckBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("aggregates", "crew_actions")),
+    user: Person = Depends(require_role("hse_head", "foreman")),
 ) -> dict[str, Any]:
     check = session.get(InspectionCheck, check_id)
     if check is None or check.inspection_id != inspection_id:

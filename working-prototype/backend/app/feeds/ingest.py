@@ -7,7 +7,7 @@ once per hot spell, not on every reading.
 
 import hashlib
 import hmac
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -35,6 +35,8 @@ def gateway_token() -> str:
 def ingest_sensor_reading(
     session: Session, sensor_id: str, zone_code: str, at: datetime, metric: str, value: float
 ) -> FeedReading:
+    if at.tzinfo is not None:  # gateways send UTC with a "Z"; stored times are naive UTC
+        at = at.astimezone(UTC).replace(tzinfo=None)
     zone = session.scalars(select(Zone).where(Zone.name == zone_code)).first()
     if zone is None:
         raise UnknownZone(zone_code)

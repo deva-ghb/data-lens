@@ -34,7 +34,7 @@ router = APIRouter(tags=["permits"])
 
 
 def _issuer(user: Person = Depends(require_scope("permit_counts"))) -> Person:
-    if user.role not in (Role.PERMIT_ISSUER, Role.HSE_HEAD):
+    if user.role != Role.PERMIT_ISSUER:
         raise ApiError(403, "forbidden", "Only the permit issuer can change a permit.")
     return user
 
@@ -246,6 +246,10 @@ def move(
         raise ApiError(422, "invalid_input", "Please say why the permit goes back.")
     if move == "sign":
         readiness = permit_readiness(session, permit)
+        if readiness["crew_status"] == "unscored":
+            raise conflict(
+                "The crew has not been scored yet. Ask the planner to run the evening score first."
+            )
         if readiness["crew_status"] == "red":
             raise conflict(
                 f"The crew has {readiness['open_reassignments']} open reassign today "

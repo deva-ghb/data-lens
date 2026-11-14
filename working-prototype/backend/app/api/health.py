@@ -26,6 +26,7 @@ from app.models import (
 )
 from app.models.health import FitnessDecision
 from app.models.scores import Tier
+from app.policy.tokens import person_token
 
 router = APIRouter(tags=["health"])
 
@@ -105,7 +106,7 @@ def worker_record(
         .where(FitnessOutcome.person_id == person_id)
         .order_by(FitnessOutcome.at.desc())
     ).all()
-    audit(session, user, "health_record_viewed", "person", str(person_id))
+    audit(session, user, "health_record_viewed", "person", person_token(person_id))
     session.commit()
     return {
         "person_id": p.id,
@@ -138,7 +139,9 @@ def worker_record(
 class OutcomeBody(BaseModel):
     outcome: str
     restriction_text: str | None = None
-    share_with_employer: bool = True
+    # The worker decides. The clinician may record a choice the worker made in the
+    # consultation; otherwise nothing is shared until the worker says so on their phone.
+    share_with_employer: bool = False
 
 
 @router.post("/health/workers/{person_id}/outcome", status_code=201)
@@ -173,8 +176,7 @@ def record_outcome(
         user,
         "fitness_outcome",
         "person",
-        str(person_id),
-        evidence={"outcome": decision.value, "shared": body.share_with_employer},
+        person_token(person_id),  # no outcome and no identity: the employer reads this trail
     )
     session.commit()
     return {"id": outcome.id, "outcome": decision.value, "shared": body.share_with_employer}

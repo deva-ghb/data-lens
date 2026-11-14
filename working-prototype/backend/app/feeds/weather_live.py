@@ -66,19 +66,16 @@ def pull_live_forecast(session: Session) -> int:
         return 0
     feed_id = session.scalars(select(Feed.id).where(Feed.code == "WEATHER")).one()
     times = [datetime.fromisoformat(t) for t in hourly["time"]]
-    existing = set(
-        session.scalars(
-            select(FeedReading.at).where(
-                FeedReading.feed_id == feed_id,
-                FeedReading.source == FeedSource.LIVE,
-                FeedReading.at.in_(times),
-            )
+    # A newer forecast replaces the hours it covers.
+    session.execute(
+        FeedReading.__table__.delete().where(
+            FeedReading.feed_id == feed_id,
+            FeedReading.source == FeedSource.LIVE,
+            FeedReading.at.in_(times),
         )
     )
     added = 0
     for i, at in enumerate(times):
-        if at in existing:
-            continue
         for source_name, metric in METRICS.items():
             value = hourly[source_name][i]
             if value is None:

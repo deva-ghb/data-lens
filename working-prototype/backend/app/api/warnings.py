@@ -18,6 +18,7 @@ from app.api.common import (
     draft_out,
     not_found,
     person_name,
+    require_role,
     require_scope,
 )
 from app.audit import audit
@@ -107,7 +108,7 @@ def _detector_day(session):  # type: ignore[no-untyped-def]
 
 @router.get("/warnings")
 def warnings(
-    session: SessionDep, user: Person = Depends(require_scope("aggregates"))
+    session: SessionDep, user: Person = Depends(require_role("hse_head"))
 ) -> dict[str, Any]:
     day = _detector_day(session)
     index = feed_index(session)
@@ -134,23 +135,30 @@ def warnings(
 
 
 @router.post("/warnings/scan")
-def scan(
-    session: SessionDep, user: Person = Depends(require_scope("aggregates"))
-) -> dict[str, Any]:
+def scan(session: SessionDep, user: Person = Depends(require_role("hse_head"))) -> dict[str, Any]:
     clear_feed_index(session)
     day = _detector_day(session)
     opened = []
-    open_zones = set(
-        session.scalars(
+    # One open record per district episode, the same rule the back-test and the seed use.
+    zones = {z.id: z for z in session.scalars(select(Zone))}
+
+    def district_of(zone_id: int) -> int:
+        z = zones[zone_id]
+        return z.parent_id or z.id
+
+    open_districts = {
+        district_of(zid)
+        for zid in session.scalars(
             select(WarningRecord.zone_id).where(WarningRecord.status == WarningStatus.OPEN)
         )
-    )
+    }
     for signal in detect(session, day):
-        if (
-            signal.level in (WarningLevel.WARNING, WarningLevel.ALERT)
-            and signal.zone_id not in open_zones
-        ):
-            opened.append(open_warning(session, signal, user).id)
+        if signal.level not in (WarningLevel.WARNING, WarningLevel.ALERT):
+            continue
+        if district_of(signal.zone_id) in open_districts:
+            continue
+        opened.append(open_warning(session, signal, user).id)
+        open_districts.add(district_of(signal.zone_id))
     session.commit()
     return {"day": day.isoformat(), "opened": opened}
 
@@ -272,9 +280,11 @@ def draft_step(
     n: int,
     body: DraftBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("aggregates", "permit_counts")),
+    user: Person = Depends(require_role("hse_head")),
 ) -> dict[str, Any]:
     w = _record(session, warning_id)
+    if w.status != WarningStatus.OPEN:
+        raise conflict("This warning is closed.")
     if not 1 <= n <= 10:
         raise not_found("step")
     step = session.scalars(
@@ -380,6 +390,8 @@ def confirm_step(
                             status=ConditionStatus.DRAFT,
                         )
                     )
+    if n == 9:
+        _learning_from(session, w, draft.content)
     audit(session, user, "warning_step_confirmed", "warning", str(w.id), evidence={"step": n})
     session.commit()
     return _step_out(session, step)
@@ -394,7 +406,7 @@ def close(
     warning_id: int,
     body: CloseBody,
     session: SessionDep,
-    user: Person = Depends(require_scope("aggregates")),
+    user: Person = Depends(require_role("hse_head")),
 ) -> dict[str, Any]:
     w = _record(session, warning_id)
     if w.status == WarningStatus.CLOSED:
@@ -468,3 +480,50 @@ def district(
         "columns": [c["zone"] for c in rows[0]["cells"]],
         "rows": rows,
     }
+
+
+def _learning_from(session, w: WarningRecord, content: str) -> None:  # type: ignore[no-untyped-def]
+    """Step 9 confirmed: a card, a toolbox talk and a practice change wait for the HSE head
+    to share. They are written only from the confirmed sections."""
+    from app.models import LearningItem
+    from app.models.learning import LearningKind, LearningStatus
+
+    for kind, draft_kind in (
+        (LearningKind.CARD, "learning_card"),
+        (LearningKind.TOOLBOX_TALK, "toolbox_talk"),
+        (LearningKind.SWP_CHANGE, "swp_change"),
+    ):
+        exists = session.scalar(
+            select(LearningItem.id).where(
+                LearningItem.source_kind == "warning",
+                LearningItem.source_id == w.id,
+                LearningItem.kind == kind,
+            )
+        )
+        if exists is not None:
+            continue
+        item = LearningItem(
+            kind=kind, source_kind="warning", source_id=w.id, status=LearningStatus.DRAFT
+        )
+        session.add(item)
+        session.flush()
+        text = AiDraft(
+            kind=draft_kind,
+            subject_kind="learning",
+            subject_id=item.id,
+            language="en",
+            prompt_version="from-step-9",
+            model="person",
+            deployment="person",
+            content=content,
+            sure_json=[],
+            unsure_json=[],
+            would_change_json=[],
+            confidence=1.0,
+            reasoning_json={"evidence": [], "rules": [], "inferences": [], "rejected": []},
+            status=AiDraftStatus.CONFIRMED,
+            created_at=site_now(session),
+        )
+        session.add(text)
+        session.flush()
+        item.draft_id = text.id

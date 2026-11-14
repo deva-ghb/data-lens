@@ -1,6 +1,6 @@
 """Administration: the site clock (people and reset follow in the admin task)."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -21,7 +21,8 @@ class ClockBody(BaseModel):
 def move_clock(
     body: ClockBody, session: SessionDep, user: Person = Depends(require_scope("admin"))
 ) -> dict[str, Any]:
-    set_site_now(session, body.now.replace(tzinfo=None), user)
+    now = body.now if body.now.tzinfo is None else body.now.astimezone(UTC).replace(tzinfo=None)
+    set_site_now(session, now, user)
     session.commit()
     now = site_now(session)
     return {"site_now": now.isoformat(), "site_now_local": (now + LOCAL).isoformat()}
@@ -77,7 +78,11 @@ def people(
             )
         )
     if role:
-        query = query.where(Person.role == Role(role))
+        try:
+            query = query.where(Person.role == Role(role))
+        except ValueError:
+            raise ApiError(422, "invalid_input", "Unknown role.") from None
+    page = max(page, 1)
     rows = session.scalars(query).all()
     size = 25
     return {
@@ -158,7 +163,13 @@ def update_person(
     if p is None:
         raise not_found("person")
     if body.role:
-        p.role = Role(body.role)
+        try:
+            new_role = Role(body.role)
+        except ValueError:
+            raise ApiError(422, "invalid_input", "Unknown role.") from None
+        if p.id == user.id and new_role != Role.ADMIN:
+            raise ApiError(409, "conflict", "You cannot remove your own administrator role.")
+        p.role = new_role
     if body.active is not None:
         if p.id == user.id and not body.active:
             raise ApiError(409, "conflict", "You cannot switch off your own account.")

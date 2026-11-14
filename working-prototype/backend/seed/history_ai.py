@@ -505,7 +505,7 @@ def arjun_reason(session: Session) -> None:
         _draft(
             session,
             "reason_translation",
-            "assignment",
+            "assignment-reassign",
             assignment.id,
             text,
             CLOCK,

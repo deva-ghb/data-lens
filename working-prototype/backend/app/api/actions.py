@@ -15,6 +15,7 @@ from app.api.common import (
     draft_out,
     not_found,
     person_name,
+    require_role,
     require_scope,
 )
 from app.audit import audit
@@ -86,7 +87,7 @@ class ActionBody(BaseModel):
 
 @router.post("/actions", status_code=201)
 def create(
-    body: ActionBody, session: SessionDep, user: Person = Depends(require_scope("aggregates"))
+    body: ActionBody, session: SessionDep, user: Person = Depends(require_role("hse_head"))
 ) -> dict[str, Any]:
     if (
         not body.title.strip()
@@ -145,7 +146,10 @@ def update(action_id: int, body: ActionPatch, session: SessionDep, user: UserDep
     if user.id != a.owner_id and user.role.value not in ("hse_head",):
         raise ApiError(403, "forbidden", "Only the owner or the HSE head can update this action.")
     if body.status:
-        a.status = ActionStatus(body.status)
+        try:
+            a.status = ActionStatus(body.status)
+        except ValueError:
+            raise ApiError(422, "invalid_input", "Unknown action status.") from None
     if body.effective is not None:
         today = site_now(session).date()
         if a.effectiveness_check_on and today < a.effectiveness_check_on:
@@ -251,3 +255,18 @@ def mark_read(item_id: int, session: SessionDep, user: UserDep) -> dict[str, Any
 
 
 __all__ = ["router", "draft_out", "stored_draft"]
+
+
+@router.post("/learning/{item_id}/publish")
+def publish(
+    item_id: int, session: SessionDep, user: Person = Depends(require_role("hse_head"))
+) -> dict[str, Any]:
+    item = session.get(LearningItem, item_id)
+    if item is None:
+        raise not_found("learning item")
+    if item.status == LearningStatus.PUBLISHED:
+        raise conflict("Already shared.")
+    item.status = LearningStatus.PUBLISHED
+    audit(session, user, "learning_shared", "learning", str(item.id))
+    session.commit()
+    return {"id": item.id, "status": item.status.value}

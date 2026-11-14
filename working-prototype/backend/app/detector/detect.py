@@ -1,7 +1,8 @@
 """The early warning detector: deviation from each zone's own baseline, per day.
 
 For each zone and each series, the last three days are compared with the 28 days before
-them. A series is up when it runs at least 1.5 times its baseline and, for counts, is at
+them. A series is up when it runs at least the action line (1.5 by default, set by the
+back-test sweep) times its baseline and, for counts, is at
 least two events above expected and a rise that large would happen by chance on fewer
 than 2.5 percent of days (a one-sided Poisson test).
 The level then follows the rules in the concept doc:
@@ -22,7 +23,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.detector.series import SERIES, FeedIndex, SeriesDef, feed_index
-from app.models import WarningRecord
+from app.models import Setting, WarningRecord
 from app.models.warnings import WarningLevel, WarningStatus
 
 WINDOW_DAYS = 3
@@ -64,6 +65,12 @@ class ZoneEvaluation:
 Signal = ZoneEvaluation
 
 
+def current_action_line(session: Session) -> float:
+    """The action line the live detector uses: the one the back-test sweep chose."""
+    row = session.get(Setting, "action_line")
+    return float(row.value) if row is not None else UP_RATIO
+
+
 def evaluation_time(day: date) -> datetime:
     """The detector runs at local midnight at the end of `day` (20:00 UTC)."""
     return datetime(day.year, day.month, day.day, 20)
@@ -99,7 +106,12 @@ def poisson_tail(observed: float, expected: float) -> float:
 
 
 def _series(
-    index: FeedIndex, s: SeriesDef, zone_id: int, day: date, excluded: set[date]
+    index: FeedIndex,
+    s: SeriesDef,
+    zone_id: int,
+    day: date,
+    excluded: set[date],
+    line: float = UP_RATIO,
 ) -> SeriesResult | None:
     window = [day - timedelta(days=i) for i in range(WINDOW_DAYS)]
     base_days = [
@@ -123,15 +135,15 @@ def _series(
         ratio = w_mean / b_mean if b_mean > 0 else 1.0
         if s.metric == "cooling_units_down":
             ratio = (w_mean + SMOOTHING) / (b_mean + SMOOTHING)
-            up = ratio >= UP_RATIO and (w_mean - b_mean) >= MIN_EXCESS
+            up = ratio >= line and (w_mean - b_mean) >= MIN_EXCESS
         else:
-            up = ratio >= UP_RATIO
+            up = ratio >= line
     else:
         ratio = (w_mean + SMOOTHING) / (b_mean + SMOOTHING)
         observed_total = w_mean * len(observed_values)
         expected_total = b_mean * len(observed_values)
         up = (
-            ratio >= UP_RATIO
+            ratio >= line
             and observed_total - expected_total >= MIN_EXCESS
             and poisson_tail(observed_total, expected_total) < MAX_CHANCE
         )
@@ -168,10 +180,11 @@ def evaluate_zone(
     session: Session,
     zone_id: int,
     day: date,
-    action_line: float = UP_RATIO,
+    action_line: float | None = None,
     feeds_off: frozenset[str] = frozenset(),
     index: FeedIndex | None = None,
 ) -> ZoneEvaluation:
+    action_line = action_line or current_action_line(session)
     index = index or feed_index(session)
     late_codes = _late_feeds(index, day, feeds_off)
     excluded = _excluded_days(session, zone_id)
@@ -179,7 +192,7 @@ def evaluate_zone(
     for s in SERIES:
         if s.feed in late_codes:
             continue
-        result = _series(index, s, zone_id, day, excluded)
+        result = _series(index, s, zone_id, day, excluded, action_line)
         if result is not None:
             results.append(result)
     up = [r for r in results if r.up]
@@ -217,9 +230,10 @@ def evaluate_zone(
 def detect(
     session: Session,
     day: date,
-    action_line: float = UP_RATIO,
+    action_line: float | None = None,
     feeds_off: frozenset[str] = frozenset(),
 ) -> list[ZoneEvaluation]:
+    action_line = action_line or current_action_line(session)
     index = feed_index(session)
     signals = []
     for zone_id in sorted(index.zone_name):

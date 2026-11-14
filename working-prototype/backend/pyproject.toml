@@ -40,7 +40,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.flake8-bugbear]
 # FastAPI declares dependencies as call defaults by design.
-extend-immutable-calls = ["fastapi.Depends", "app.api.common.require_scope"]
+extend-immutable-calls = ["fastapi.Depends", "app.api.common.require_scope", "app.api.common.require_role"]
 
 [tool.ruff.lint.per-file-ignores]
 # Seed data files hold long sentences of synthetic record text.

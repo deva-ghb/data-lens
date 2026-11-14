@@ -37,7 +37,8 @@ def test_pull_stores_live_readings(scenario: Session) -> None:
         assert weather_live.pull_live_forecast(scenario) == 8
         assert _live_rows(scenario) == 8
         again = weather_live.pull_live_forecast(scenario)
-        assert again == 0  # the same hours are not stored twice
+        assert again == 8  # a newer forecast replaces the same hours
+        assert _live_rows(scenario) == 8  # never stored twice
     finally:
         weather_live.set_transport(None)
     status = scenario.get_one(Setting, "live_weather_status").value

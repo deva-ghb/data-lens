@@ -29,6 +29,17 @@ def require_scope(*scopes: DataScope) -> Callable[[Person], Person]:
     return guard
 
 
+def require_role(*roles: str) -> Callable[[Person], Person]:
+    """Only these roles may take this action, whatever data scopes others hold."""
+
+    def guard(user: UserDep) -> Person:
+        if user.role.value not in roles:
+            raise ApiError(403, "forbidden", "This action is not part of your role.")
+        return user
+
+    return guard
+
+
 def not_found(what: str) -> ApiError:
     return ApiError(404, "not_found", f"That {what} does not exist.")
 

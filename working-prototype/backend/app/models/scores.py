@@ -79,6 +79,8 @@ class SwapProposal(Base):
     run_id: Mapped[int] = mapped_column(ForeignKey("score_runs.id"), index=True)
     assignment_id: Mapped[int] = mapped_column(ForeignKey("assignments.id"), index=True)
     to_activity_id: Mapped[int] = mapped_column(ForeignKey("activities.id"), index=True)
+    # The work the worker had when the swap was proposed, so history reads correctly after.
+    from_activity_id: Mapped[int | None] = mapped_column(ForeignKey("activities.id"), index=True)
     status: Mapped[SwapStatus] = mapped_column(default=SwapStatus.PROPOSED)
     reason: Mapped[str | None] = mapped_column(Text)
     decided_by: Mapped[int | None] = mapped_column(ForeignKey("people.id"), index=True)

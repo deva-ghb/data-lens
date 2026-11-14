@@ -1,0 +1,21 @@
+.matrix-table th {
+  white-space: normal;
+  min-width: 88px;
+  vertical-align: bottom;
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+  height: auto;
+}
+
+.matrix-table__cell {
+  text-align: center;
+}
+
+.matrix-table__yes {
+  color: var(--color-accent);
+  font-size: 10px;
+}
+
+.autonomy-select {
+  width: 220px;
+}

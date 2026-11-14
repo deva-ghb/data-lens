@@ -109,6 +109,14 @@ def propose_swaps(
             break
         if result.tier != Tier.REASSIGN:
             continue
+        existing = session.scalars(
+            select(SwapProposal.id).where(
+                SwapProposal.assignment_id == result.assignment_id,
+                SwapProposal.status != SwapStatus.REJECTED,
+            )
+        ).first()
+        if existing is not None:
+            continue  # already proposed or decided on an earlier run: never twice
         crew = crews[(result.gang_id, result.activity_id)]
         if not keeps_crew_rules(crew, result.assignment_id, result.heat_tier or 0):
             continue
@@ -131,6 +139,7 @@ def propose_swaps(
             run_id=run_id,
             assignment_id=assignment.id,
             to_activity_id=best.activity_id,
+            from_activity_id=assignment.activity_id,
             status=SwapStatus.PROPOSED,
             reason=f"Move to {target.name.lower()}: relative risk {result.r:.2f} to {best.r:.2f}",
         )
