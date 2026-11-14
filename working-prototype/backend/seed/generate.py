@@ -240,11 +240,15 @@ def _roster(ctx: Ctx) -> None:
                 if w.hire_date > day:
                     continue
                 past = start < CLOCK
-                if past and not story_window and rng.random() < 0.02:
+                # Rostered either way; a sick worker keeps the roster slot and logs an absence.
+                absent = past and not story_window and rng.random() < 0.02
+                if absent:
                     ctx.add(Absence, person_id=pid, date=day, kind="sickness")
-                    continue
                 activity = crew.activity
-                if crew.alt_activity and not story_window and rng.random() < 0.12:
+                if w.cohort == "recent_arrival":
+                    # New arrivals start on ground work while they get used to the heat.
+                    activity = "TWIST_GROUND"
+                elif crew.alt_activity and not story_window and rng.random() < 0.12:
                     activity = crew.alt_activity
                 ctx.add(
                     Assignment,
@@ -256,7 +260,7 @@ def _roster(ctx: Ctx) -> None:
                     source=AssignmentSource.ROSTER,
                 )
                 ctx.worked[pid].append((day, kind.value, crew.zone, activity))
-                if past and rng.random() < 0.85:
+                if past and not absent and rng.random() < 0.85:
                     _checkin(ctx, pid, shift_id, start, kind)
 
 

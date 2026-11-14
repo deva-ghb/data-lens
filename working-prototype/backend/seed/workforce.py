@@ -281,11 +281,7 @@ def build_workers(rng: np.random.Generator, crews: list[CrewDef]) -> list[Worker
         }
         if cohort == "story":
             camp = "Camp Block C"
-        elif (
-            crew_name == "Deck Gang 3"
-            and camp_c_in_gang3 < 2
-            and cohort in ("recent_arrival", "new_contractor")
-        ):
+        elif crew_name == "Deck Gang 3" and camp_c_in_gang3 < 2 and cohort == "new_contractor":
             camp = "Camp Block C"
             camp_c_in_gang3 += 1
         elif employer == MIRSAL and rng.random() < 0.4:

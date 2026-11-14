@@ -30,41 +30,45 @@ GROUP_PLAN: dict[str, tuple[int, dict[str, tuple[int, int]]]] = {
     "exp_inhouse": (50, {"LASH_DECK": (3, 1)}),
     "new_contractor": (50, {"LASH_DECK": (5, 3)}),
     "exp_nights": (38, {"LASH_DECK": (3, 2)}),
-    "driver_refreshed": (133, {"TT_DRIVING": (4, 3), "REACH_STACKER": (3, 2)}),
-    "driver_overdue": (100, {"TT_DRIVING": (6, 3), "REACH_STACKER": (3, 2)}),
-    "mooring": (80, {"MOORING": (5, 3)}),
+    "driver_refreshed": (133, {"TT_DRIVING": (5, 3), "REACH_STACKER": (2, 2)}),
+    "driver_overdue": (100, {"TT_DRIVING": (6, 4), "REACH_STACKER": (2, 2)}),
+    "mooring": (30, {"MOORING": (2, 1)}),
     "ungrouped": (
-        379,
+        389,
         {
             "QC_OPS": (3, 2),
-            "HOLD_CONFINED": (2, 1),
-            "HOT_WORK": (2, 1),
-            "TWIST_GROUND": (6, 4),
-            "REEFER": (3, 2),
-            "WORKSHOP_MECH": (3, 3),
+            "HOLD_CONFINED": (1, 1),
+            "HOT_WORK": (1, 1),
+            "TWIST_GROUND": (5, 3),
+            "REEFER": (3, 1),
+            "WORKSHOP_MECH": (4, 2),
+            "TT_DRIVING": (3, 1),
+            "REACH_STACKER": (2, 0),
         },
     ),
 }
 
+# Unsafe conditions and near misses per activity. With the cards above, each activity's
+# events per worker-hour sit near the site rate, and lashing sits at 1.3 times it.
 CONDITIONS = {
     "LASH_DECK": 7,
-    "TT_DRIVING": 5,
+    "TT_DRIVING": 8,
     "REACH_STACKER": 3,
-    "MOORING": 2,
-    "QC_OPS": 2,
-    "HOLD_CONFINED": 2,
+    "MOORING": 1,
+    "QC_OPS": 3,
     "HOT_WORK": 1,
-    "TWIST_GROUND": 1,
+    "TWIST_GROUND": 2,
     "REEFER": 1,
+    "WORKSHOP_MECH": 1,
 }
 NEAR_MISSES = {
     "LASH_DECK": 3,
-    "TT_DRIVING": 4,
+    "TT_DRIVING": 5,
     "REACH_STACKER": 2,
-    "MOORING": 2,
+    "MOORING": 1,
     "QC_OPS": 1,
-    "HOLD_CONFINED": 1,
-    "HOT_WORK": 1,
+    "TWIST_GROUND": 1,
+    "WORKSHOP_MECH": 1,
 }
 
 TEXT = {
@@ -236,6 +240,8 @@ def _conditions_and_near_misses(ctx: Ctx) -> None:
         "QC_OPS": "Spreader landed hard on a misaligned box.",
         "HOLD_CONFINED": "Gas meter alarm during hold cleaning; crew withdrew.",
         "HOT_WORK": "Spark landed on a rag near the welding bay.",
+        "TWIST_GROUND": "Spreader landed while a handler was still inside the bay.",
+        "WORKSHOP_MECH": "Jack slipped under a raised tractor; nobody underneath.",
     }
     for activity, count in NEAR_MISSES.items():
         if activity in ("LASH_DECK", "REACH_STACKER"):
