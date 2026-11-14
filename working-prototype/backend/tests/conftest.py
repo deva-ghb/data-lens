@@ -77,3 +77,41 @@ def scenario(scenario_template: Path, tmp_path: Path) -> Iterator[Session]:
     with Session(engine) as session:
         yield session
     engine.dispose()
+
+
+class ApiClient:
+    """A TestClient on a private copy of the scenario, signed in as one person."""
+
+    def __init__(self) -> None:
+        from fastapi.testclient import TestClient
+
+        from app.main import app
+
+        self._factory = lambda: TestClient(app)
+
+    def as_user(self, email_local: str):  # type: ignore[no-untyped-def]
+        client = self._factory()
+        response = client.post(
+            "/api/auth/login",
+            json={"email": f"{email_local}@mirsalterminals.com", "password": "welcome@123"},
+        )
+        assert response.status_code == 200, response.text
+        return client
+
+
+@pytest.fixture
+def api(
+    scenario_template: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[ApiClient]:
+    """The real app bound to a private copy of the seeded scenario."""
+    path = tmp_path / "api.db"
+    shutil.copyfile(scenario_template, path)
+    engine = db.make_engine(f"sqlite:///{path}")
+    previous_bind = db.SessionLocal.kw.get("bind")
+    monkeypatch.setattr(db, "engine", engine)
+    db.SessionLocal.configure(bind=engine)
+    try:
+        yield ApiClient()
+    finally:
+        db.SessionLocal.configure(bind=previous_bind)
+        engine.dispose()
