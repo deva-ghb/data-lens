@@ -56,3 +56,24 @@ def session(fresh_database: Engine) -> Iterator[Session]:
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     shutil.rmtree(_IMPORT_GUARD_DIR, ignore_errors=True)
+
+
+@pytest.fixture(scope="session")
+def scenario_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """The full seeded scenario, built once per test session."""
+    from seed.build import build_database
+
+    path = tmp_path_factory.mktemp("scenario") / "scenario.db"
+    build_database(path)
+    return path
+
+
+@pytest.fixture
+def scenario(scenario_template: Path, tmp_path: Path) -> Iterator[Session]:
+    """A session on a private copy of the seeded scenario."""
+    path = tmp_path / "scenario.db"
+    shutil.copyfile(scenario_template, path)
+    engine = db.make_engine(f"sqlite:///{path}")
+    with Session(engine) as session:
+        yield session
+    engine.dispose()
