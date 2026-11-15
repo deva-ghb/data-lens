@@ -1,15 +1,15 @@
 """Regression tests for the batch B review findings."""
 
 
-def _arjun(api):  # type: ignore[no-untyped-def]
-    return api.as_user("arjun.thapa").get("/api/auth/me").json()["id"]
+def _marco(api):  # type: ignore[no-untyped-def]
+    return api.as_user("marco.villanueva").get("/api/auth/me").json()["id"]
 
 
 def _evening(api):  # type: ignore[no-untyped-def]
     api.as_user("daniel.mensah").post("/api/runs", json={"kind": "evening"})
 
 
-def _row(client, name="Arjun Thapa"):  # type: ignore[no-untyped-def]
+def _row(client, name="Marco Villanueva"):  # type: ignore[no-untyped-def]
     return next(r for r in client.get("/api/roster").json()["rows"] if r["worker"] == name)
 
 
@@ -26,25 +26,25 @@ def test_committed_databases_are_at_migration_head() -> None:
 
 
 def test_unshared_not_today_shows_unknown_not_refer(api) -> None:  # type: ignore[no-untyped-def]
-    arjun = _arjun(api)
+    marco = _marco(api)
     api.as_user("sara.ibrahim").post(
-        f"/api/health/workers/{arjun}/outcome", json={"outcome": "not_today"}
+        f"/api/health/workers/{marco}/outcome", json={"outcome": "not_today"}
     )
     _evening(api)
     assert _row(api.as_user("daniel.mensah"))["tier"] == "unknown"
 
 
 def test_audit_never_carries_health_outcomes_or_unwell_names(api) -> None:  # type: ignore[no-untyped-def]
-    arjun = _arjun(api)
+    marco = _marco(api)
     api.as_user("sara.ibrahim").post(
-        f"/api/health/workers/{arjun}/outcome", json={"outcome": "not_today"}
+        f"/api/health/workers/{marco}/outcome", json={"outcome": "not_today"}
     )
     _evening(api)
     api.as_user("hessa.almansoori").put("/api/admin/clock", json={"now": "2026-07-29T17:00:00"})
-    api.as_user("arjun.thapa").post("/api/phone/unwell", json={})
+    api.as_user("marco.villanueva").post("/api/phone/unwell", json={})
     trail = api.as_user("layla.haddad").get("/api/audit").json()["entries"]
     blob = str([e for e in trail if e["action"] in ("fitness_outcome", "reported_unwell")])
-    assert "not_today" not in blob and "Arjun" not in blob and str(arjun) not in blob
+    assert "not_today" not in blob and "Marco" not in blob and str(marco) not in blob
 
 
 def test_clinician_cannot_run_hse_actions(api) -> None:  # type: ignore[no-untyped-def]
@@ -159,18 +159,20 @@ def test_layer_build_hides_the_behavioural_group(api) -> None:  # type: ignore[n
 
 
 def test_worker_decides_whether_to_share(api) -> None:  # type: ignore[no-untyped-def]
-    arjun = _arjun(api)
+    marco = _marco(api)
     api.as_user("sara.ibrahim").post(
-        f"/api/health/workers/{arjun}/outcome", json={"outcome": "fit"}
+        f"/api/health/workers/{marco}/outcome", json={"outcome": "fit"}
     )
     planner = api.as_user("daniel.mensah")
     assert (
         next(
-            o for o in planner.get("/api/fitness-outcomes").json() if o["worker"] == "Arjun Thapa"
+            o
+            for o in planner.get("/api/fitness-outcomes").json()
+            if o["worker"] == "Marco Villanueva"
         )["outcome"]
         == "not shared"
     )
-    worker = api.as_user("arjun.thapa")
+    worker = api.as_user("marco.villanueva")
     outcome = worker.get("/api/phone/me").json()["outcome"]
     assert outcome and outcome["shared"] is False
     assert (
@@ -181,7 +183,9 @@ def test_worker_decides_whether_to_share(api) -> None:  # type: ignore[no-untype
     )
     assert (
         next(
-            o for o in planner.get("/api/fitness-outcomes").json() if o["worker"] == "Arjun Thapa"
+            o
+            for o in planner.get("/api/fitness-outcomes").json()
+            if o["worker"] == "Marco Villanueva"
         )["outcome"]
         == "fit"
     )
@@ -189,7 +193,7 @@ def test_worker_decides_whether_to_share(api) -> None:  # type: ignore[no-untype
 
 def test_contest_once_and_planner_resolves_it(api) -> None:  # type: ignore[no-untyped-def]
     _evening(api)
-    worker = api.as_user("arjun.thapa")
+    worker = api.as_user("marco.villanueva")
     assert worker.post("/api/phone/contest", json={"text": "I slept well."}).status_code == 201
     assert worker.post("/api/phone/contest", json={"text": "Again."}).status_code == 409
     planner = api.as_user("daniel.mensah")
@@ -206,13 +210,13 @@ def test_contest_once_and_planner_resolves_it(api) -> None:  # type: ignore[no-u
 
 def test_phone_shows_only_approved_swaps(api) -> None:  # type: ignore[no-untyped-def]
     _evening(api)
-    assert api.as_user("arjun.thapa").get("/api/phone/me").json()["swap_to"] is None
+    assert api.as_user("marco.villanueva").get("/api/phone/me").json()["swap_to"] is None
     planner = api.as_user("daniel.mensah")
     sid = _row(planner)["swap"]["id"]
     planner.post(f"/api/swaps/{sid}/accept", json={})
     api.as_user("khalid.alnuaimi").post(f"/api/swaps/{sid}/approve", json={})
     assert (
-        api.as_user("arjun.thapa").get("/api/phone/me").json()["swap_to"]
+        api.as_user("marco.villanueva").get("/api/phone/me").json()["swap_to"]
         == "Ground twist-lock handling"
     )
 
@@ -235,7 +239,8 @@ def test_step_9_confirm_creates_learning_the_hse_head_can_publish(api, monkeypat
     card = next(i for i in items if i["kind"] == "card")
     assert hse.post(f"/api/learning/{card['id']}/publish", json={}).status_code == 200
     assert any(
-        c["id"] == card["id"] for c in api.as_user("arjun.thapa").get("/api/learning/mine").json()
+        c["id"] == card["id"]
+        for c in api.as_user("marco.villanueva").get("/api/learning/mine").json()
     )
 
 

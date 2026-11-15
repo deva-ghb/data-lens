@@ -48,7 +48,7 @@ def test_permit_context_has_counts_not_names(scenario: Session) -> None:
     counts = context["permit_counts"]["readiness"]
     assert set(counts) >= {"fit", "fit_with_controls", "reassign", "refer", "unknown"}
     blob = _text(context)
-    assert "arjun" not in blob and "thapa" not in blob
+    assert "marco" not in blob and "thapa" not in blob
 
 
 def test_planner_question_about_lab_results_is_declined_and_audited(

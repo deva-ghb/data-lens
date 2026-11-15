@@ -3,7 +3,7 @@
 Workers check in on their phones in the half hour before a shift. For the night of
 29 July those check-ins lie after the scenario's clock, so the engine does not see
 them until the clock reaches them: the evening run on 28 July scores without them,
-and the shift-start re-score at 19:00 on 29 July has them. Arjun checks in on camera,
+and the shift-start re-score at 19:00 on 29 July has them. Marco checks in on camera,
 and Kiran Shrestha never does, so the re-score shows one missing check-in.
 
 A separate random stream keeps every number the rest of the seed produced unchanged.
@@ -20,7 +20,7 @@ from app.models.roster import Feeling, ShiftKind
 from seed.scenario import SEED
 
 STORY_NIGHT = date(2026, 7, 29)
-CHECKS_IN_ON_CAMERA = "arjun.thapa"
+CHECKS_IN_ON_CAMERA = "marco.villanueva"
 NEVER_CHECKS_IN = "kiran.shrestha"
 
 

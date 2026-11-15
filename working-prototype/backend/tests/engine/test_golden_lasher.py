@@ -14,14 +14,14 @@ from app.models.scores import ConditionsSource, Tier
 
 
 def test_lasher_reproduces_walkthrough(scenario: Session) -> None:
-    arjun = scenario.scalars(
-        select(Person).where(Person.email == "arjun.thapa@mirsalterminals.com")
+    marco = scenario.scalars(
+        select(Person).where(Person.email == "marco.villanueva@mirsalterminals.com")
     ).one()
     assignment = scenario.scalars(
         select(Assignment)
         .join(Shift, Shift.id == Assignment.shift_id)
         .where(
-            Assignment.person_id == arjun.id,
+            Assignment.person_id == marco.id,
             Shift.date == date(2026, 7, 29),
             Shift.kind == ShiftKind.NIGHT,
         )

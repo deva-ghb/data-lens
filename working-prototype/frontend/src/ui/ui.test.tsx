@@ -152,7 +152,7 @@ describe("AiSection", () => {
 const readyDraft: AiDraft = {
   ...unavailableDraft,
   id: "draft-2",
-  content: "Move Arjun Pillai to the reefer gate from 13:00.",
+  content: "Move Marco Pillai to the reefer gate from 13:00.",
   sure: ["Fourth night in a row"],
   confidence: 0.8,
   status: "draft",

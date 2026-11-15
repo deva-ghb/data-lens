@@ -71,7 +71,7 @@ def test_ensure_weights_v0_is_idempotent(session: Session) -> None:
 
 def test_key_users_and_reference_data() -> None:
     emails = {u.email for u in KEY_USERS}
-    assert "arjun.thapa@mirsalterminals.com" in emails
+    assert "marco.villanueva@mirsalterminals.com" in emails
     roles = {u.role for u in KEY_USERS}
     assert roles == {
         "admin",

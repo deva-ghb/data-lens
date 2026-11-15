@@ -31,7 +31,7 @@ from app.models.records import RecordStatus
 from app.models.roster import Feeling, ShiftKind
 from app.models.scores import ConditionsSource, RunKind, Tier
 
-ARJUN = "arjun.thapa@mirsalterminals.com"
+MARCO = "marco.villanueva@mirsalterminals.com"
 
 
 def _night(session: Session) -> Shift:
@@ -40,8 +40,8 @@ def _night(session: Session) -> Shift:
     ).one()
 
 
-def _arjun_assignment(session: Session) -> Assignment:
-    person = session.scalars(select(Person).where(Person.email == ARJUN)).one()
+def _marco_assignment(session: Session) -> Assignment:
+    person = session.scalars(select(Person).where(Person.email == MARCO)).one()
     return session.scalars(
         select(Assignment).where(
             Assignment.person_id == person.id, Assignment.shift_id == _night(session).id
@@ -59,7 +59,7 @@ def _score(session: Session, run_id: int, person_id: int) -> AssignmentScore:
 
 def test_unshared_outcome_does_not_change_r_or_reasons(scenario: Session) -> None:
     weights = load_weights(scenario)
-    assignment = _arjun_assignment(scenario)
+    assignment = _marco_assignment(scenario)
     before = score(scenario, assignment.id, weights, ConditionsSource.SCENARIO)
     scenario.add(
         FitnessOutcome(
@@ -95,7 +95,7 @@ def test_rescore_after_shift_start_marks_missing_checkins_unknown(scenario: Sess
 
 
 def test_late_checkin_clears_unknown(scenario: Session) -> None:
-    assignment = _arjun_assignment(scenario)
+    assignment = _marco_assignment(scenario)
     scenario.add(
         CheckIn(
             person_id=assignment.person_id,
@@ -112,7 +112,7 @@ def test_late_checkin_clears_unknown(scenario: Session) -> None:
 
 
 def test_near_miss_logged_at_the_current_clock_moves_control(scenario: Session) -> None:
-    assignment = _arjun_assignment(scenario)
+    assignment = _marco_assignment(scenario)
     set_site_now(scenario, datetime(2026, 7, 29, 10, 0), None)
     before = _score(
         scenario, run_scores(scenario, assignment.shift_id, RunKind.MANUAL).id, assignment.person_id
@@ -139,7 +139,7 @@ def test_near_miss_logged_at_the_current_clock_moves_control(scenario: Session) 
 
 
 def test_open_near_miss_does_not_move_control(scenario: Session) -> None:
-    assignment = _arjun_assignment(scenario)
+    assignment = _marco_assignment(scenario)
     before = _score(
         scenario,
         run_scores(scenario, assignment.shift_id, RunKind.EVENING).id,
@@ -170,7 +170,7 @@ def test_open_near_miss_does_not_move_control(scenario: Session) -> None:
 
 def test_not_today_does_not_last_thirty_days(scenario: Session) -> None:
     weights = load_weights(scenario)
-    assignment = _arjun_assignment(scenario)
+    assignment = _marco_assignment(scenario)
     scenario.add(
         FitnessOutcome(
             person_id=assignment.person_id,

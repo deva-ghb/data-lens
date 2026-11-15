@@ -3,7 +3,7 @@
 1. The detector is replayed day by day over the history, exactly as the live system would
    have run, and opens a warning record for the first day of each episode.
 2. Past warnings are closed by the HSE head with an outcome (right, or false alarm).
-3. The ten steps of each record, the incident records, the learning items and Arjun's
+3. The ten steps of each record, the incident records, the learning items and Marco's
    reason in his own language are written here as "authored-seed" drafts, composed from
    the computed figures so every number matches what the screens compute. No call is
    made to Azure for any of it; at runtime `get_or_draft` finds these and reuses them.
@@ -472,36 +472,37 @@ def incident_records(session: Session) -> None:
         )
 
 
-ARJUN_REASON = {
+MARCO_REASON = {
     "en": (
-        "Arjun, tonight would be your third night in a row, two of your last ten check-ins "
+        "Marco, tonight would be your third night in a row, two of your last ten check-ins "
         "came after short sleep, and the cooling in your camp block is down. Lashing at height "
         "asks a lot of a tired body in this heat, so we are proposing ground twist-lock handling "
         "for tonight instead, with your own crew. This is not recorded against you. If you "
         "think it is wrong, tap Contest and say why."
     ),
-    "ne": (
-        "अर्जुन, आज राति तपाईंको लगातार तेस्रो रात हो, पछिल्ला दस चेक-इनमध्ये दुईमा निद्रा कम थियो, "
-        "र तपाईंको क्याम्प ब्लकमा कुलिङ बिग्रिएको छ। यो गर्मीमा थाकेको शरीरले उचाइमा ल्यासिङ गर्नु "
-        "जोखिमपूर्ण हुन्छ, त्यसैले आज राति तपाईंलाई आफ्नै टोलीसँग जमिनमा ट्विस्ट-लक काम दिने प्रस्ताव "
-        "गरिएको छ। यो तपाईंको विरुद्धमा रेकर्ड हुँदैन। यदि तपाईंलाई यो गलत लाग्छ भने Contest थिच्नुहोस् "
-        "र कारण लेख्नुहोस्।"
+    "tl": (
+        "Marco, ngayong gabi ang magiging ikatlong sunod-sunod mong night shift. Sa huling "
+        "sampung check-in mo, dalawa ang kulang sa tulog, at sira ang aircon sa camp block mo. "
+        "Mabigat sa pagod na katawan ang lashing sa taas sa ganitong init, kaya iminumungkahi "
+        "naming ground twist-lock handling ka muna ngayong gabi, kasama pa rin ang crew mo. "
+        "Hindi ito itatala laban sa iyo. Kung sa tingin mo ay mali ito, pindutin ang Contest "
+        "at sabihin kung bakit."
     ),
 }
 
 
-def arjun_reason(session: Session) -> None:
-    arjun = _person(session, "arjun.thapa")
+def marco_reason(session: Session) -> None:
+    marco = _person(session, "marco.villanueva")
     assignment = session.scalars(
         select(Assignment)
         .join(Shift, Shift.id == Assignment.shift_id)
         .where(
-            Assignment.person_id == arjun.id,
+            Assignment.person_id == marco.id,
             Shift.date == STORY_DATE,
             Shift.kind == ShiftKind.NIGHT,
         )
     ).one()
-    for language, text in ARJUN_REASON.items():
+    for language, text in MARCO_REASON.items():
         _draft(
             session,
             "reason_translation",
@@ -526,4 +527,4 @@ def arjun_reason(session: Session) -> None:
 def write_history(session: Session) -> None:
     replay_and_write(session)
     incident_records(session)
-    arjun_reason(session)
+    marco_reason(session)

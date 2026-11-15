@@ -22,7 +22,7 @@ def test_permit_shows_counts_never_names(api) -> None:  # type: ignore[no-untype
     detail = issuer.get(f"/api/permits/{permit['id']}").json()
     assert detail["people_factor"]["readiness"]["reassign"] >= 1
     assert detail["people_factor"]["crew_status"] == "red"
-    assert "arjun" not in str(detail).lower() and "thapa" not in str(detail).lower()
+    assert "marco" not in str(detail).lower() and "thapa" not in str(detail).lower()
 
 
 def test_red_crew_blocks_issue_with_409(api) -> None:  # type: ignore[no-untyped-def]

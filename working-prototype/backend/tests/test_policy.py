@@ -67,7 +67,7 @@ def test_threshold_setting_is_read_from_settings_table(session: Session) -> None
 
 def test_reassignment_audit_uses_shift_token_not_person_id(session: Session) -> None:
     planner = _person(session, Role.PLANNER, "daniel.mensah@mirsalterminals.com")
-    worker = _person(session, Role.WORKER, "arjun.thapa@mirsalterminals.com")
+    worker = _person(session, Role.WORKER, "marco.villanueva@mirsalterminals.com")
     token = shift_token(worker.id, 42)
     audit(session, planner, "swap_accepted", "reassignment", token, evidence={"shift_id": 42})
     entry = session.scalars(select(AuditEntry)).one()

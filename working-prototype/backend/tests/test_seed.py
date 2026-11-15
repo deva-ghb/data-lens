@@ -55,9 +55,9 @@ def _activity_id(session: Session, code: str) -> int:
     return session.scalars(select(Activity.id).where(Activity.code == code)).one()
 
 
-def _arjun(session: Session) -> Person:
+def _marco(session: Session) -> Person:
     return session.scalars(
-        select(Person).where(Person.email == "arjun.thapa@mirsalterminals.com")
+        select(Person).where(Person.email == "marco.villanueva@mirsalterminals.com")
     ).one()
 
 
@@ -181,38 +181,38 @@ def test_lash_deck_uabc_counts_match_story(seeded: Session) -> None:
     assert {n.shift_kind for n in near_misses} == {ShiftKind.NIGHT}
 
 
-def test_arjun_third_night_on_29_july(seeded: Session) -> None:
-    arjun = _arjun(seeded)
+def test_marco_third_night_on_29_july(seeded: Session) -> None:
+    marco = _marco(seeded)
     kinds = {}
     for day in (26, 27, 28, 29):
         shift_kind = seeded.scalar(
             select(Shift.kind)
             .join(Assignment, Assignment.shift_id == Shift.id)
-            .where(Assignment.person_id == arjun.id, Shift.date == date(2026, 7, day))
+            .where(Assignment.person_id == marco.id, Shift.date == date(2026, 7, day))
         )
         kinds[day] = shift_kind
     assert kinds == {26: None, 27: ShiftKind.NIGHT, 28: ShiftKind.NIGHT, 29: ShiftKind.NIGHT}
     activity = seeded.scalar(
         select(Assignment)
         .join(Shift, Assignment.shift_id == Shift.id)
-        .where(Assignment.person_id == arjun.id, Shift.date == date(2026, 7, 29))
+        .where(Assignment.person_id == marco.id, Shift.date == date(2026, 7, 29))
     )
     assert activity is not None and activity.activity_id == _activity_id(seeded, "LASH_DECK")
     courses = set(
         seeded.scalars(
-            select(TrainingRecord.course_code).where(TrainingRecord.person_id == arjun.id)
+            select(TrainingRecord.course_code).where(TrainingRecord.person_id == marco.id)
         )
     )
     assert "HEIGHT_REFRESHER" not in courses
     assert "CONTRACTOR_INDUCTION" in courses
 
 
-def test_arjun_short_sleep_in_two_of_last_ten_checkins(seeded: Session) -> None:
+def test_marco_short_sleep_in_two_of_last_ten_checkins(seeded: Session) -> None:
     from app.models import CheckIn
 
-    arjun = _arjun(seeded)
+    marco = _marco(seeded)
     last_ten = seeded.scalars(
-        select(CheckIn).where(CheckIn.person_id == arjun.id).order_by(CheckIn.at.desc()).limit(10)
+        select(CheckIn).where(CheckIn.person_id == marco.id).order_by(CheckIn.at.desc()).limit(10)
     ).all()
     assert len(last_ten) == 10
     short = [c for c in last_ten if c.sleep_hours_band in ("under_5", "5_to_6")]
@@ -270,9 +270,9 @@ def test_camp_c_clinic_heat_visits_about_double_baseline(seeded: Session) -> Non
 
 
 def test_gang_mate_cleared_by_clinician_on_19_july(seeded: Session) -> None:
-    arjun = _arjun(seeded)
+    marco = _marco(seeded)
     gang_id = seeded.scalar(
-        select(Assignment.gang_id).where(Assignment.person_id == arjun.id).limit(1)
+        select(Assignment.gang_id).where(Assignment.person_id == marco.id).limit(1)
     )
     gang = seeded.get(Gang, gang_id)
     assert gang is not None and gang.name == "Deck Gang 3"
@@ -282,7 +282,7 @@ def test_gang_mate_cleared_by_clinician_on_19_july(seeded: Session) -> None:
         .where(Assignment.gang_id == gang_id)
         .where(func.date(FitnessOutcome.at) == "2026-07-19")
     ).first()
-    assert outcome is not None and outcome.person_id != arjun.id
+    assert outcome is not None and outcome.person_id != marco.id
 
 
 def test_audit_trail_covers_seeded_history(scenario: Session) -> None:
@@ -309,7 +309,7 @@ def test_audit_trail_covers_seeded_history(scenario: Session) -> None:
 
 
 def test_story_night_check_ins_wait_in_the_future(scenario: Session) -> None:
-    """The crews check in before the story night; Arjun does it on camera, Kiran never does."""
+    """The crews check in before the story night; Marco does it on camera, Kiran never does."""
     from app.models import CheckIn, Person, Shift
 
     night = scenario.scalars(
@@ -326,7 +326,7 @@ def test_story_night_check_ins_wait_in_the_future(scenario: Session) -> None:
         for p in scenario.scalars(select(Person).where(Person.id.in_(rostered)))
     }
     assert {c.person_id for c in checked} == rostered - {
-        by_email["arjun.thapa"],
+        by_email["marco.villanueva"],
         by_email["kiran.shrestha"],
     }
     clock = datetime(2026, 7, 28, 14, 0)

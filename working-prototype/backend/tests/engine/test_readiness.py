@@ -74,14 +74,14 @@ def test_reason_text_uses_work_terms_not_diagnosis(scenario: Session) -> None:
             assert word not in lowered
 
 
-def test_arjun_inputs_from_the_seed(scenario: Session) -> None:
-    arjun = scenario.scalars(
-        select(Person).where(Person.email == "arjun.thapa@mirsalterminals.com")
+def test_marco_inputs_from_the_seed(scenario: Session) -> None:
+    marco = scenario.scalars(
+        select(Person).where(Person.email == "marco.villanueva@mirsalterminals.com")
     ).one()
     shift = scenario.scalars(
         select(Shift).where(Shift.date == date(2026, 7, 29), Shift.kind == ShiftKind.NIGHT)
     ).one()
-    inputs = gather_inputs(scenario, arjun.id, shift.id)
+    inputs = gather_inputs(scenario, marco.id, shift.id)
     assert inputs.consecutive_nights == 3
     assert inputs.short_sleep_checkins_last10 == 2
     assert inputs.group_code == "NEW_CONTRACTOR"

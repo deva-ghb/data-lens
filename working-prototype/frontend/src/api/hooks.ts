@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from "@tanstack/react-query";
+import { useRef } from "react";
 import type { AiDraft } from "../ui/AiSection";
 import { useToast } from "../ui/Toast";
 import { apiGet, apiSend, type ApiError } from "./client";
@@ -25,17 +26,26 @@ export function useSend<Body = unknown, Result = unknown>(
 ) {
   const client = useQueryClient();
   const toast = useToast();
+  // Callbacks live with the mutation, not the component: a card that disappears once the
+  // data refreshes must still show its confirmation.
+  const callbacks = useRef<SendOptions<Result>>({});
   const mutation = useMutation<Result, ApiError, Body>({
     mutationFn: (body: Body) =>
       apiSend<Result>(method, typeof path === "function" ? path(body) : path, body),
-    onSuccess: () => client.invalidateQueries(),
-    onError: () => client.invalidateQueries(),
+    onSuccess: (result) => {
+      callbacks.current.onSuccess?.(result);
+      return client.invalidateQueries();
+    },
+    onError: (e) => {
+      const handle = callbacks.current.onError ?? ((err: ApiError) => toast({ title: "That did not go through", body: err.message, tone: "critical" }));
+      handle(e);
+      return client.invalidateQueries();
+    },
   });
-  const mutate = (body: Body, options: SendOptions<Result> = {}) =>
-    mutation.mutate(body, {
-      onSuccess: options.onSuccess,
-      onError: options.onError ?? ((e) => toast({ title: "That did not go through", body: e.message, tone: "critical" })),
-    });
+  const mutate = (body: Body, options: SendOptions<Result> = {}) => {
+    callbacks.current = options;
+    mutation.mutate(body);
+  };
   return { ...mutation, mutate };
 }
 

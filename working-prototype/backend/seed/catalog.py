@@ -401,14 +401,14 @@ KEY_USERS: list[KeyUser] = [
         "Ahmed", "AlShamsi", "authority", "Mirsal Terminals", "District health and labour liaison"
     ),
     KeyUser(
-        "Arjun",
-        "Thapa",
+        "Marco",
+        "Villanueva",
         "worker",
         "Bayan Manpower Contracting",
         "Lasher",
         induction="contractor",
         camp="Camp Block C",
-        display_language="ne",
+        display_language="tl",
         note="The lasher in the walkthrough: new arrival, contractor induction only, "
         "third night in a row on 29 July, height refresher not done.",
         extra={"gang": "Deck Gang 3", "arrived_months_ago": 4},

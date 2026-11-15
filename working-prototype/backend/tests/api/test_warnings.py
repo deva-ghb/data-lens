@@ -125,4 +125,4 @@ def test_district_view_suppresses_small_cells(api) -> None:  # type: ignore[no-u
 
 
 def test_worker_cannot_open_warnings(api) -> None:  # type: ignore[no-untyped-def]
-    assert api.as_user("arjun.thapa").get("/api/warnings").status_code == 403
+    assert api.as_user("marco.villanueva").get("/api/warnings").status_code == 403

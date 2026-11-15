@@ -16,7 +16,7 @@ const ACCOUNTS = [
   ["Head of HSE", "layla.haddad"],
   ["Clinician", "sara.ibrahim"],
   ["Foreman", "joseph.kariuki"],
-  ["Worker", "arjun.thapa"],
+  ["Worker", "marco.villanueva"],
   ["District authority", "ahmed.alshamsi"],
   ["Administrator", "hessa.almansoori"],
 ];

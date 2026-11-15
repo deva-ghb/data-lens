@@ -190,7 +190,7 @@ The theme proposals are no longer needed; Task 4 implements the settled theme di
 **Interfaces:**
 - Produces: `ACTIVITIES` (13 entries), `HAZARDS` (6, the rows of spec sensitivity matrix), `GROUPS` (6 definitions with `defines(person, history) -> bool`), `EMPLOYERS`, `ZONES`, `KEY_USERS`; `load_weights(session, version=None) -> Weights` with fields `sens: dict[hazard_code, dict[dimension, "H"|"M"|"L"]]`, `sens_value: {"H":0.35,"M":0.20,"L":0.08}`, `thresholds: dict[grade, tuple[float,float]]`, `factor_caps`, `fatigue_by_night: {1:1.0, 2:1.05, 3:1.12, 4:1.36}`, `heat_by_tier: {0:1.0, 1:1.08, 2:1.17, 3:1.17}`, `condition_terms`, `control_formula_k: 0.5`, `group_cap: 1.6`.
 - Activities (code, grade): `LASH_DECK` Lashing at height on deck (5, 1440 worker-hours a week, 14 SWP items, lower-hazard alternative `TWIST_GROUND`); `QC_OPS` Quay crane operation (5); `MOORING` Mooring and unmooring (5); `HOLD_CONFINED` Hold cleaning in a confined space (5); `HOT_WORK` Hot work in the workshop (4); `REACH_STACKER` Reach stacker operation (4); `TT_DRIVING` Terminal tractor driving (4); `TWIST_GROUND` Ground twist-lock handling (3); `REEFER` Reefer plugging and monitoring (3); `WORKSHOP_MECH` Workshop mechanical maintenance (3); `CONTAINER_INSPECT` Container inspection and sealing (2); `YARD_HOUSEKEEPING` Yard housekeeping (2); `GATE_CLERK` Gate clerk (1).
-- Key users (all `@mirsalterminals.com`): `hessa.almansoori` admin; `layla.haddad` hse_head; `daniel.mensah` planner; `khalid.alnuaimi` shift_manager; `priya.raman` permit_issuer; `joseph.kariuki` foreman (deck gang 3); `tomas.reyes` foreman (yard); `sara.ibrahim` clinician; `ahmed.alshamsi` authority; `arjun.thapa` worker (the lasher: Bayan Manpower, contractor induction, arrived 4 months ago, Camp Block C, height refresher not done).
+- Key users (all `@mirsalterminals.com`): `hessa.almansoori` admin; `layla.haddad` hse_head; `daniel.mensah` planner; `khalid.alnuaimi` shift_manager; `priya.raman` permit_issuer; `joseph.kariuki` foreman (deck gang 3); `tomas.reyes` foreman (yard); `sara.ibrahim` clinician; `ahmed.alshamsi` authority; `marco.villanueva` worker (the lasher: Bayan Manpower, contractor induction, arrived 4 months ago, Camp Block C, height refresher not done).
 
 - [ ] **Step 1: Write the failing tests:** `test_thirteen_activities_with_grades_as_listed`; `test_sensitivity_matrix_matches_spec_rows` (fall from height: H,H,M,H,H,H; struck by plant: H,M,L,M,H,M; dropped load: M,M,L,L,H,H; heat illness: H,H,M,H,L,L; manual handling: M,M,H,M,M,L; hot work and confined space: H,H,M,H,H,H); `test_weights_v0_constants_match_plan`.
 - [ ] **Step 2:** Run. Expected: FAIL.
@@ -223,9 +223,9 @@ The theme proposals are no longer needed; Task 4 implements the settled theme di
 **Interfaces:**
 - Produces: `inject(session, rng)`, called by `generate` after the base history; `INJECTED_EVENTS` list with `{code, zone, window, signals, closed}` used by the back-test as ground truth.
 - Events: `E1_DUST_RESP` respiratory cluster in Yard Block 4 with high PM10 (May, closed); `E2_NIGHT_FATIGUE` night lashing near-miss cluster (June, closed); `E3_PLANT_STRUCK` reach stacker struck-by pattern in Yard Block 2 (early July, closed); `E4_CAMP_C_COOLING` Camp Block C: 11 of 40 cooling units down from 25 Jul, clinic heat visits from Block C at about twice baseline, on the scenario date open.
-- Story facts the seed must make true (then computed by the engine): `LASH_DECK` has 11 unsafe acts, 6 unsafe behaviours, 7 unsafe conditions and 3 near misses in 12 months, all on nights; Arjun Thapa is on his third consecutive night on 29 Jul, short sleep in 2 of his last 10 check-ins, height refresher not completed; forecast WBGT 34 at 12:00 on 29 Jul; one worker in his gang cleared by the clinician on 19 Jul.
+- Story facts the seed must make true (then computed by the engine): `LASH_DECK` has 11 unsafe acts, 6 unsafe behaviours, 7 unsafe conditions and 3 near misses in 12 months, all on nights; Marco Villanueva is on his third consecutive night on 29 Jul, short sleep in 2 of his last 10 check-ins, height refresher not completed; forecast WBGT 34 at 12:00 on 29 Jul; one worker in his gang cleared by the clinician on 19 Jul.
 
-- [ ] **Step 1: Write the failing tests:** `test_lash_deck_uabc_counts_match_story`; `test_arjun_third_night_on_29_july`; `test_camp_c_tickets_11_of_40`; `test_camp_c_clinic_heat_visits_about_double_baseline` (ratio between 1.8 and 2.4 over 25 to 28 Jul).
+- [ ] **Step 1: Write the failing tests:** `test_lash_deck_uabc_counts_match_story`; `test_marco_third_night_on_29_july`; `test_camp_c_tickets_11_of_40`; `test_camp_c_clinic_heat_visits_about_double_baseline` (ratio between 1.8 and 2.4 over 25 to 28 Jul).
 - [ ] **Step 2:** Run. Expected: FAIL.
 - [ ] **Step 3:** Implement.
 - [ ] **Step 4:** Run. Expected: PASS. Run `scripts/seed.py --fresh`; commit `feat: injected events and story facts` with the database file.
@@ -268,7 +268,7 @@ tier      = refer if a health signal needs a clinician; unknown if no check-in a
             else by grade thresholds; then if removing the group factor lowers the tier by more than one step, raise it back to one step above
 ```
 
-- [ ] **Step 1: Write the failing golden test** `test_lasher_reproduces_walkthrough`: on the seeded scenario for Arjun on `LASH_DECK` night shift 29 Jul with weights v0: `control == approx(1.15, abs=0.02)`, `condition == approx(1.25, abs=0.02)`, `profile == approx(1.35, abs=0.02)`, `r == approx(1.94, abs=0.03)`, `tier == "reassign"`.
+- [ ] **Step 1: Write the failing golden test** `test_lasher_reproduces_walkthrough`: on the seeded scenario for Marco on `LASH_DECK` night shift 29 Jul with weights v0: `control == approx(1.15, abs=0.02)`, `condition == approx(1.25, abs=0.02)`, `profile == approx(1.35, abs=0.02)`, `r == approx(1.94, abs=0.03)`, `tier == "reassign"`.
 - [ ] **Step 2: Write the failing unit tests:** `test_grade_2_not_scored_per_person`; `test_grade_3_thresholds_1_5_and_2_4`; `test_group_factor_moves_tier_at_most_one_step`; `test_unwell_checkin_gives_refer`; `test_drivers_sorted_by_contribution_with_source_and_freshness`.
 - [ ] **Step 3:** Run. Expected: FAIL.
 - [ ] **Step 4:** Implement; tune only the condition term values and seed facts (never the test) until the golden test passes, and record the tuned values in `weights_v0.json`.
@@ -283,7 +283,7 @@ tier      = refer if a health signal needs a clinician; unknown if no check-in a
 **Interfaces:**
 - Produces: `check_crew_rules(scores: list[ScoreResult], gang, heat_tier) -> list[RuleBreach(rule, detail)]`; `apply_budget(recommendations, planner_limit=3, foreman_limit=2) -> (shown, rolled_into_brief)`; `propose_swaps(session, run_id, scores, weights) -> list[SwapProposal]` (greedy: highest R first, candidate activities within the person's competencies and the employer's contract scope, pick the lowest resulting R that keeps every crew rule, stop at budget).
 
-- [ ] **Step 1: Write the failing tests:** `test_quarter_of_crew_on_controls_rule_in_heat_tier_2`; `test_arrivals_under_7_days_capped_at_2_per_gang`; `test_high_hazard_task_keeps_one_experienced_worker`; `test_budget_shows_three_and_rolls_rest_into_brief`; `test_arjun_swap_proposal_is_ground_twist_lock_handling`.
+- [ ] **Step 1: Write the failing tests:** `test_quarter_of_crew_on_controls_rule_in_heat_tier_2`; `test_arrivals_under_7_days_capped_at_2_per_gang`; `test_high_hazard_task_keeps_one_experienced_worker`; `test_budget_shows_three_and_rolls_rest_into_brief`; `test_marco_swap_proposal_is_ground_twist_lock_handling`.
 - [ ] **Step 2:** Run. Expected: FAIL.
 - [ ] **Step 3:** Implement.
 - [ ] **Step 4:** Run. Expected: PASS. Commit `feat: crew rules, alert budget, greedy swaps`.
@@ -403,7 +403,7 @@ Azure (`gpt-6-luna`) is called only at runtime for new events.
 
 **Interfaces:**
 - Produces: `load_ai_content(session)` called by `scripts/seed.py`: writes `AiDraft` and `AiDecision` rows with `model = "authored-seed"` and the current prompt version, so `get_or_draft` reuses them and never calls Azure for seeded subjects.
-- Content needed: the three closed warnings' ten steps (all confirmed, with outcomes), the Camp Block C warning's step 1 to 3 drafts (unconfirmed, for the demo), historical incidents' records with triage and 5 by 5 answers, learning items, Arjun's reason in his display language, the role briefs for 28 Jul evening and 29 Jul shift start.
+- Content needed: the three closed warnings' ten steps (all confirmed, with outcomes), the Camp Block C warning's step 1 to 3 drafts (unconfirmed, for the demo), historical incidents' records with triage and 5 by 5 answers, learning items, Marco's reason in his display language, the role briefs for 28 Jul evening and 29 Jul shift start.
 - Every authored text follows the same JSON shape as a live draft (content, sure, unsure, would change, confidence, reasoning) and quotes only figures that the engine and detector actually compute on the seed (check them against the computed values).
 
 - [ ] **Step 1: Write the failing tests:** `test_seeded_subjects_never_call_azure` (counting stub client, zero calls when opening every seeded record); `test_authored_figures_match_computed` (numbers in the Camp Block C step 1 draft equal the detector's output for that zone and period).
@@ -481,7 +481,7 @@ Every page is checked by eye at 1440 px and 390 px before the commit, and anythi
 **Interfaces:**
 - Produces: `GET /api/roster?shift_id=` (tiers, work-term reasons, controls; no health detail); `POST /api/runs {shift_id, kind, conditions_source}`; `GET /api/assignments/{id}/build` (layer by layer); `POST /api/swaps/{id}/accept|decline {reason}` (planner); `POST /api/swaps/{id}/approve|reject` (shift manager); `GET /api/risk-split?shift_id=`.
 
-- [ ] **Step 1:** Failing tests: `test_planner_sees_reason_not_diagnosis`; `test_decline_requires_reason`; `test_shift_manager_approval_applies_swap_and_audits_with_token`; `test_decline_after_approval_returns_409` (Review Focus 3); e2e `planner accepts Arjun's swap, shift manager approves, roster shows ground twist-lock handling`.
+- [ ] **Step 1:** Failing tests: `test_planner_sees_reason_not_diagnosis`; `test_decline_requires_reason`; `test_shift_manager_approval_applies_swap_and_audits_with_token`; `test_decline_after_approval_returns_409` (Review Focus 3); e2e `planner accepts Marco's swap, shift manager approves, roster shows ground twist-lock handling`.
 - [ ] **Step 2:** Implement roster with tier filter Selects, crew rule breaches, budget banner, the layer-build view (four bars multiplying into R, drivers with source and freshness, scenario versus live forecast switch), Monte Carlo split card.
 - [ ] **Step 3:** Pass, visual check, commit `feat: assignment risk, swaps and approval`.
 
@@ -544,7 +544,7 @@ Every page is checked by eye at 1440 px and 390 px before the commit, and anythi
 - Create: `backend/app/api/phone.py`, `frontend/src/pages/phone/{WorkerHome,CheckIn,MyTier,Contest,Unwell,Cards,ForemanHome,Confirm}.tsx`
 - Test: `backend/tests/api/test_phone.py`, `frontend/e2e/phone.spec.ts`
 
-- [ ] **Step 1:** Failing tests: `test_checkin_is_three_taps` (sleep band, feeling, hydration in one POST); `test_worker_sees_reason_in_display_language`; `test_contest_creates_record_visible_to_planner`; `test_unwell_notifies_clinician_and_permit_without_name`; `test_foreman_sees_actions_not_answers`; e2e at 390 px `Arjun checks in, reads his reason, contests; Joseph confirms the work-rest change`.
+- [ ] **Step 1:** Failing tests: `test_checkin_is_three_taps` (sleep band, feeling, hydration in one POST); `test_worker_sees_reason_in_display_language`; `test_contest_creates_record_visible_to_planner`; `test_unwell_notifies_clinician_and_permit_without_name`; `test_foreman_sees_actions_not_answers`; e2e at 390 px `Marco checks in, reads his reason, contests; Joseph confirms the work-rest change`.
 - [ ] **Step 2:** Implement in `PhoneShell` with 44 px controls and bottom navigation.
 - [ ] **Step 3:** Pass, visual check, commit `feat: worker and foreman phones`.
 
@@ -610,7 +610,7 @@ Every page is checked by eye at 1440 px and 390 px before the commit, and anythi
 **Files:**
 - Create: `frontend/e2e/story.spec.ts`
 
-- [ ] **Step 1:** One test runs the whole lasher story on a reset scenario: evening run, planner and shift manager settle the swap, Arjun's phone, permit signed, shift-start re-score with a missing check-in, sensor replay crosses 32 for 30 minutes and the foreman confirms, an unwell tap, Camp Block C warning through ten steps, an action and a learning card, the warning closed with an outcome, a weights proposal approved.
+- [ ] **Step 1:** One test runs the whole lasher story on a reset scenario: evening run, planner and shift manager settle the swap, Marco's phone, permit signed, shift-start re-score with a missing check-in, sensor replay crosses 32 for 30 minutes and the foreman confirms, an unwell tap, Camp Block C warning through ten steps, an action and a learning card, the warning closed with an outcome, a weights proposal approved.
 - [ ] **Step 2:** Run the whole suite: `uv run pytest`, `npx vitest run`, `npx playwright test`, ruff, eslint, `tsc --noEmit`. All green, no flaky retries.
 - [ ] **Step 3:** Commit `test: full story end to end`.
 
@@ -646,7 +646,7 @@ Every page is checked by eye at 1440 px and 390 px before the commit, and anythi
 - Create: `video/rec.mjs`, `video/kit.mjs` (copied from the skill)
 
 - [ ] **Step 1:** Load the `generating-narrated-videos` skill; run its `setup.sh` in `video/`.
-- [ ] **Step 2:** Write `rec.mjs` with one beat per shot in `flow.md`, two screens (desktop 1920 by 1080 and a phone at 390 by 844 for Arjun and Joseph), `glide/click/type` for every action.
+- [ ] **Step 2:** Write `rec.mjs` with one beat per shot in `flow.md`, two screens (desktop 1920 by 1080 and a phone at 390 by 844 for Marco and Joseph), `glide/click/type` for every action.
 - [ ] **Step 3:** `REHEARSE=1 node rec.mjs` until clean; then record after `reset_take.py`.
 
 ### Task 40: Build and check the video

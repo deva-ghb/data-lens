@@ -42,7 +42,7 @@ def test_home_decisions_point_at_real_work(api, echo_brief) -> None:  # type: ig
     planner.post("/api/runs", json={"kind": "evening"})
     decisions = planner.get("/api/home").json()["decisions"]
     assert 1 <= len(decisions) <= 3
-    assert any("Arjun Thapa" in d["title"] for d in decisions)
+    assert any("Marco Villanueva" in d["title"] for d in decisions)
 
 
 def test_meta_reports_site_clock_and_focus_shift(api) -> None:  # type: ignore[no-untyped-def]

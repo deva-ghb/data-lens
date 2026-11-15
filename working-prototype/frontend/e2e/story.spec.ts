@@ -36,10 +36,10 @@ test("the lasher's night, from the evening run to the closed warning", async ({ 
   const planner = await signedIn(browser, "daniel.mensah");
   await planner.goto("/roster");
   await planner.getByRole("button", { name: "Score tomorrow's roster" }).first().click();
-  const arjun = planner.locator(".rec", { hasText: "Arjun Thapa" });
-  await expect(arjun).toContainText("Reassign today");
-  await expect(arjun).toContainText("relative risk 1.94");
-  await expect(arjun).toContainText("Ground twist-lock handling");
+  const marco = planner.locator(".rec", { hasText: "Marco Villanueva" });
+  await expect(marco).toContainText("Reassign today");
+  await expect(marco).toContainText("relative risk 1.94");
+  await expect(marco).toContainText("Ground twist-lock handling");
   for (let left = 3; left > 0; left--) {
     await expect(planner.getByRole("button", { name: "Accept swap" })).toHaveCount(left);
     await planner.getByRole("button", { name: "Accept swap" }).first().click();
@@ -53,11 +53,12 @@ test("the lasher's night, from the evening run to the closed warning", async ({ 
     await expect(manager.getByRole("button", { name: "Approve", exact: true })).toHaveCount(left);
     await manager.getByRole("button", { name: "Approve", exact: true }).first().click();
   }
+  await expect(manager.getByText("Swap approved").first()).toBeVisible();
   await expect(manager.getByText("Nothing to approve")).toBeVisible();
 
-  // 29 July, 18:00 on site: Arjun reads the change in Nepali and checks in.
+  // 29 July, 18:00 on site: Marco reads the change in Filipino and checks in.
   await setClock(admin, "2026-07-29T14:00:00");
-  const phone = await signedIn(browser, "arjun.thapa", 390);
+  const phone = await signedIn(browser, "marco.villanueva", 390);
   await phone.goto("/m");
   await expect(phone.getByText("Tonight: Ground twist-lock handling")).toBeVisible();
   await expect(phone.locator(".phone-local")).toBeVisible();

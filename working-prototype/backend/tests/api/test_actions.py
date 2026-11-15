@@ -77,7 +77,7 @@ def test_read_counts_by_crew_suppressed_below_threshold(api) -> None:  # type: i
 
 
 def test_worker_reads_a_card(api) -> None:  # type: ignore[no-untyped-def]
-    worker = api.as_user("arjun.thapa")
+    worker = api.as_user("marco.villanueva")
     cards = worker.get("/api/learning/mine").json()
     assert cards
     assert worker.post(f"/api/learning/{cards[0]['id']}/read", json={}).status_code == 200

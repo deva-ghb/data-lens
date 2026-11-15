@@ -26,7 +26,7 @@ def _assignment(session: Session, email: str) -> Assignment:
     ).one()
 
 
-ARJUN = "arjun.thapa@mirsalterminals.com"
+MARCO = "marco.villanueva@mirsalterminals.com"
 
 
 def test_grade_2_not_scored_per_person(scenario: Session) -> None:
@@ -60,7 +60,7 @@ def test_group_factor_moves_tier_at_most_one_step() -> None:
 
 def test_unwell_checkin_gives_refer(scenario: Session) -> None:
     weights = load_weights(scenario)
-    assignment = _assignment(scenario, ARJUN)
+    assignment = _assignment(scenario, MARCO)
     scenario.add(
         CheckIn(
             person_id=assignment.person_id,
@@ -82,7 +82,7 @@ def test_unwell_checkin_gives_refer(scenario: Session) -> None:
 
 def test_no_checkin_at_shift_start_is_unknown(scenario: Session) -> None:
     weights = load_weights(scenario)
-    assignment = _assignment(scenario, ARJUN)
+    assignment = _assignment(scenario, MARCO)
     result = score(
         scenario, assignment.id, weights, ConditionsSource.SCENARIO, require_checkin=True
     )
@@ -91,7 +91,7 @@ def test_no_checkin_at_shift_start_is_unknown(scenario: Session) -> None:
 
 def test_drivers_sorted_by_contribution_with_source_and_freshness(scenario: Session) -> None:
     weights = load_weights(scenario)
-    result = score(scenario, _assignment(scenario, ARJUN).id, weights, ConditionsSource.SCENARIO)
+    result = score(scenario, _assignment(scenario, MARCO).id, weights, ConditionsSource.SCENARIO)
     assert result is not None
     contributions = [d["contribution"] for d in result.drivers]
     assert contributions == sorted(contributions, reverse=True)

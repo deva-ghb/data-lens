@@ -11,7 +11,7 @@ const SCREENS: Record<string, string[]> = {
   "sara.ibrahim": ["/", "/health"],
   "ahmed.alshamsi": ["/", "/district", "/governance", "/audit"],
   "hessa.almansoori": ["/", "/admin/people", "/admin/clock", "/signals"],
-  "arjun.thapa": ["/m", "/m/report", "/m/cards"],
+  "marco.villanueva": ["/m", "/m/report", "/m/cards"],
   "joseph.kariuki": ["/m/foreman", "/m/report"],
 };
 const WIDTHS = [1440, 390];
@@ -72,7 +72,12 @@ async function dropdownProblems(page: Page): Promise<string[]> {
     const t = triggers.nth(i);
     if (!(await t.isVisible()) || !(await t.isEnabled())) continue;
     await t.scrollIntoViewIfNeeded();
-    await t.click();
+    try {
+      await t.click({ timeout: 5_000 });
+    } catch {
+      out.push(`dropdown ${i} could not be opened: ${(await t.textContent())?.trim() ?? ""}`);
+      continue;
+    }
     const list = page.locator("[role=listbox], [role=menu]").first();
     await list.waitFor({ state: "visible", timeout: 2_000 }).catch(() => undefined);
     if (await list.isVisible()) {
@@ -83,6 +88,8 @@ async function dropdownProblems(page: Page): Promise<string[]> {
       }
     }
     await page.keyboard.press("Escape");
+    // Let the list finish closing before the next trigger is touched.
+    await page.locator("[role=listbox], [role=menu]").first().waitFor({ state: "hidden", timeout: 3_000 }).catch(() => undefined);
   }
   return out;
 }

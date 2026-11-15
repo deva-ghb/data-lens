@@ -16,7 +16,7 @@ const TOUR = {
   "sara.ibrahim": ["/", "/health"],
   "ahmed.alshamsi": ["/", "/district", "/governance", "/audit"],
   "hessa.almansoori": ["/", "/admin/people", "/admin/clock", "/signals"],
-  "arjun.thapa": ["/m", "/m/report", "/m/cards"],
+  "marco.villanueva": ["/m", "/m/report", "/m/cards"],
   "joseph.kariuki": ["/m/foreman", "/m/report"],
 };
 const only = process.argv[2];

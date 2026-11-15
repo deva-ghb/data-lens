@@ -31,14 +31,14 @@ def _night(session: Session) -> Shift:
     ).one()
 
 
-def _arjun_score(session: Session, run_id: int) -> AssignmentScore:
-    arjun = session.scalars(
-        select(Person).where(Person.email == "arjun.thapa@mirsalterminals.com")
+def _marco_score(session: Session, run_id: int) -> AssignmentScore:
+    marco = session.scalars(
+        select(Person).where(Person.email == "marco.villanueva@mirsalterminals.com")
     ).one()
     return session.scalars(
         select(AssignmentScore)
         .join(Assignment, Assignment.id == AssignmentScore.assignment_id)
-        .where(AssignmentScore.run_id == run_id, Assignment.person_id == arjun.id)
+        .where(AssignmentScore.run_id == run_id, Assignment.person_id == marco.id)
     ).one()
 
 
@@ -55,14 +55,14 @@ def test_evening_run_scores_every_graded_assignment_for_29_july_night(scenario: 
         select(func.count()).select_from(AssignmentScore).where(AssignmentScore.run_id == run.id)
     )
     assert scored == graded
-    assert _arjun_score(scenario, run.id).tier == Tier.REASSIGN
+    assert _marco_score(scenario, run.id).tier == Tier.REASSIGN
 
 
 def test_worker_without_checkin_is_unknown_at_shift_start(scenario: Session) -> None:
     shift = _night(scenario)
     set_site_now(scenario, datetime(2026, 7, 29, 15, 0), None)
     run = run_scores(scenario, shift.id, RunKind.SHIFT_START)
-    assert _arjun_score(scenario, run.id).tier == Tier.UNKNOWN
+    assert _marco_score(scenario, run.id).tier == Tier.UNKNOWN
 
 
 def test_group_rates_within_0_05_of_spec_table(scenario: Session) -> None:
@@ -82,7 +82,7 @@ def test_group_rates_within_0_05_of_spec_table(scenario: Session) -> None:
 
 def test_confirmed_near_miss_raises_control_on_next_run(scenario: Session) -> None:
     shift = _night(scenario)
-    before = _arjun_score(scenario, run_scores(scenario, shift.id, RunKind.EVENING).id).control
+    before = _marco_score(scenario, run_scores(scenario, shift.id, RunKind.EVENING).id).control
     lash = scenario.scalars(select(Activity).where(Activity.code == "LASH_DECK")).one()
     berth = scenario.scalars(select(Zone).where(Zone.name == "Berth 2")).one()
     scenario.add(
@@ -98,7 +98,7 @@ def test_confirmed_near_miss_raises_control_on_next_run(scenario: Session) -> No
         )
     )
     scenario.flush()
-    after = _arjun_score(scenario, run_scores(scenario, shift.id, RunKind.MANUAL).id).control
+    after = _marco_score(scenario, run_scores(scenario, shift.id, RunKind.MANUAL).id).control
     assert after > before
 
 

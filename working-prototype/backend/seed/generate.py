@@ -215,7 +215,7 @@ def _people(ctx: Ctx) -> None:
         )
         ctx.person_id[index] = pid
         if w.key:
-            ctx.key_person["arjun.thapa"] = pid
+            ctx.key_person["marco.villanueva"] = pid
         for code in w.competencies:
             ctx.add(
                 PersonCompetency,
@@ -308,18 +308,18 @@ def _checkin(ctx: Ctx, pid: int, shift_id: int, start: datetime, kind: ShiftKind
 
 
 def _fix_story_checkins(ctx: Ctx) -> None:
-    """Arjun checked in for every past shift; two of his last ten followed short sleep."""
-    arjun = ctx.key_person["arjun.thapa"]
+    """Marco checked in for every past shift; two of his last ten followed short sleep."""
+    marco = ctx.key_person["marco.villanueva"]
     past = sorted(
-        (d, k) for d, k, _, _ in ctx.worked[arjun] if shift_window(d, ShiftKind(k))[0] < CLOCK
+        (d, k) for d, k, _, _ in ctx.worked[marco] if shift_window(d, ShiftKind(k))[0] < CLOCK
     )
     short = {past[-8], past[-4]}
-    rows = [r for r in ctx.rows[CheckIn] if r["person_id"] != arjun]
+    rows = [r for r in ctx.rows[CheckIn] if r["person_id"] != marco]
     for d, k in past:
         start, _ = shift_window(d, ShiftKind(k))
         rows.append(
             {
-                "person_id": arjun,
+                "person_id": marco,
                 "shift_id": ctx.shift_id[(d, k)],
                 "at": start - timedelta(minutes=18),
                 "sleep_hours_band": "5_to_6" if (d, k) in short else "6_to_7",

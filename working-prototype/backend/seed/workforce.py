@@ -201,7 +201,7 @@ def build_workers(rng: np.random.Generator, crews: list[CrewDef]) -> list[Worker
     crew_by_name = {c.name: c for c in crews}
     slots: list[tuple[str, str, str]] = []  # (crew, cohort, employer)
 
-    # Deck Gang 3, the story gang: Arjun, two arrivals from 23 July, two more new
+    # Deck Gang 3, the story gang: Marco, two arrivals from 23 July, two more new
     # contractors, four experienced in-house lashers and three mid-tenure lashers.
     gang3 = (
         [("Deck Gang 3", "story", BAYAN)]
@@ -271,7 +271,7 @@ def build_workers(rng: np.random.Generator, crews: list[CrewDef]) -> list[Worker
         crew = crew_by_name[crew_name]
         competencies = COMPETENCY_FOR[crew.activity]
         if cohort == "story":
-            first, last = "Arjun", "Thapa"
+            first, last = "Marco", "Villanueva"
             hire, induction, courses = STORY_DATE - timedelta(days=122), "contractor", {}
         else:
             first, last = namer.next()
@@ -306,11 +306,11 @@ def build_workers(rng: np.random.Generator, crews: list[CrewDef]) -> list[Worker
                 hire_date=hire,
                 arrival_date=hire,
                 camp=camp,
-                display_language="ne"
+                display_language="tl"
                 if cohort == "story"
                 else DISPLAY_LANGUAGES[int(rng.integers(0, len(DISPLAY_LANGUAGES)))],
                 courses=courses,
-                key="arjun" if cohort == "story" else None,
+                key="marco" if cohort == "story" else None,
             )
         )
     return workers

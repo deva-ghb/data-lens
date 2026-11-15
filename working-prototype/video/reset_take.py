@@ -4,7 +4,7 @@ Usage (from video/): uv run --project ../backend python reset_take.py [--db PATH
 
 Copies the seeded scenario over the take database, checks the clock reads
 28 July 2026, 18:00 site time, and checks the authored texts the take shows
-are present (Arjun's reason in English and Nepali, the open Camp Block C record).
+are present (Marco's reason in English and Filipino, the open Camp Block C record).
 Stop the app before running it.
 """
 
@@ -38,8 +38,8 @@ def main() -> None:
             "and subject_kind = 'assignment-reassign'"
         )
     }
-    if not {"en", "ne"} <= langs:
-        problems.append(f"Arjun's reason drafts missing: found languages {sorted(langs)}")
+    if not {"en", "tl"} <= langs:
+        problems.append(f"Marco's reason drafts missing: found languages {sorted(langs)}")
     (open_c,) = db.execute(
         "select count(*) from warning_records w join zones z on z.id = w.zone_id "
         "where z.name = 'Camp Block C' and w.status = 'open'"

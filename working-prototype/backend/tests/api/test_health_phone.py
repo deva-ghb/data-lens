@@ -7,22 +7,22 @@ from app.api import phone as phone_api
 from app.models.ai import AiDraftStatus
 
 
-def _arjun_id(api):  # type: ignore[no-untyped-def]
-    return api.as_user("arjun.thapa").get("/api/auth/me").json()["id"]
+def _marco_id(api):  # type: ignore[no-untyped-def]
+    return api.as_user("marco.villanueva").get("/api/auth/me").json()["id"]
 
 
 def test_only_clinician_reads_lab_trends(api) -> None:  # type: ignore[no-untyped-def]
-    arjun = _arjun_id(api)
-    assert api.as_user("sara.ibrahim").get(f"/api/health/workers/{arjun}").status_code == 200
+    marco = _marco_id(api)
+    assert api.as_user("sara.ibrahim").get(f"/api/health/workers/{marco}").status_code == 200
     for who in ("daniel.mensah", "layla.haddad", "khalid.alnuaimi"):
-        assert api.as_user(who).get(f"/api/health/workers/{arjun}").status_code == 403
+        assert api.as_user(who).get(f"/api/health/workers/{marco}").status_code == 403
 
 
 def test_outcome_reaches_planner_without_reason(api) -> None:  # type: ignore[no-untyped-def]
-    arjun = _arjun_id(api)
+    marco = _marco_id(api)
     clinician = api.as_user("sara.ibrahim")
     response = clinician.post(
-        f"/api/health/workers/{arjun}/outcome",
+        f"/api/health/workers/{marco}/outcome",
         json={
             "outcome": "fit_with_restrictions",
             "restriction_text": "No work above the second tier for 7 days",
@@ -31,33 +31,38 @@ def test_outcome_reaches_planner_without_reason(api) -> None:  # type: ignore[no
     )
     assert response.status_code == 201
     outcomes = api.as_user("daniel.mensah").get("/api/fitness-outcomes").json()
-    mine = [o for o in outcomes if o["worker"] == "Arjun Thapa"]
+    mine = [o for o in outcomes if o["worker"] == "Marco Villanueva"]
     assert mine and mine[0]["outcome"] == "fit_with_restrictions"
     assert "second tier" not in str(outcomes)
 
 
 def test_not_shared_outcome_shows_as_not_shared_and_engine_treats_unknown(api) -> None:  # type: ignore[no-untyped-def]
-    arjun = _arjun_id(api)
+    marco = _marco_id(api)
     api.as_user("sara.ibrahim").post(
-        f"/api/health/workers/{arjun}/outcome",
+        f"/api/health/workers/{marco}/outcome",
         json={"outcome": "fit", "share_with_employer": False},
     )
     planner = api.as_user("daniel.mensah")
     assert (
         next(
-            o for o in planner.get("/api/fitness-outcomes").json() if o["worker"] == "Arjun Thapa"
+            o
+            for o in planner.get("/api/fitness-outcomes").json()
+            if o["worker"] == "Marco Villanueva"
         )["outcome"]
         == "not shared"
     )
     planner.post("/api/runs", json={"kind": "evening"})
-    row = next(r for r in planner.get("/api/roster").json()["rows"] if r["worker"] == "Arjun Thapa")
+    row = next(
+        r for r in planner.get("/api/roster").json()["rows"] if r["worker"] == "Marco Villanueva"
+    )
     assert row["tier"] == "unknown"
 
 
 def test_clinician_decision_is_audited(api) -> None:  # type: ignore[no-untyped-def]
-    arjun = _arjun_id(api)
+    marco = _marco_id(api)
     api.as_user("sara.ibrahim").post(
-        f"/api/health/workers/{arjun}/outcome", json={"outcome": "fit", "share_with_employer": True}
+        f"/api/health/workers/{marco}/outcome",
+        json={"outcome": "fit", "share_with_employer": True},
     )
     entries = api.as_user("layla.haddad").get("/api/audit?action=fitness_outcome").json()["entries"]
     assert entries
@@ -86,7 +91,7 @@ def fake_reason(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
 
 
 def test_checkin_is_three_taps(api) -> None:  # type: ignore[no-untyped-def]
-    worker = api.as_user("arjun.thapa")
+    worker = api.as_user("marco.villanueva")
     response = worker.post(
         "/api/phone/checkin", json={"sleep_band": "6_to_7", "feeling": "good", "hydration_ok": True}
     )
@@ -96,42 +101,45 @@ def test_checkin_is_three_taps(api) -> None:  # type: ignore[no-untyped-def]
 
 def test_worker_sees_reason_in_display_language(api, fake_reason) -> None:  # type: ignore[no-untyped-def]
     api.as_user("daniel.mensah").post("/api/runs", json={"kind": "evening"})
-    me = api.as_user("arjun.thapa").get("/api/phone/me").json()
+    me = api.as_user("marco.villanueva").get("/api/phone/me").json()
     assert me["tier"] == "reassign"
-    assert me["language"] == "ne"
-    assert "अर्जुन" in me["reason_local"]  # the seeded Nepali reason
-    assert me["reason_en"].startswith("Arjun")
+    assert me["language"] == "tl"
+    assert "ikatlong sunod-sunod" in me["reason_local"]  # the seeded Filipino reason
+    assert me["reason_en"].startswith("Marco")
     assert me["swap_to"] is None  # shown to the worker only once the shift manager approves
 
 
 def test_contest_creates_record_visible_to_planner(api) -> None:  # type: ignore[no-untyped-def]
     planner = api.as_user("daniel.mensah")
     planner.post("/api/runs", json={"kind": "evening"})
-    worker = api.as_user("arjun.thapa")
+    worker = api.as_user("marco.villanueva")
     assert (
         worker.post(
             "/api/phone/contest", json={"text": "I slept well last night and I know this ladder."}
         ).status_code
         == 201
     )
-    row = next(r for r in planner.get("/api/roster").json()["rows"] if r["worker"] == "Arjun Thapa")
+    row = next(
+        r for r in planner.get("/api/roster").json()["rows"] if r["worker"] == "Marco Villanueva"
+    )
     assert row["contest"]["status"] == "open"
 
 
 def test_unwell_notifies_clinician_and_permit_without_name(api) -> None:  # type: ignore[no-untyped-def]
     api.as_user("daniel.mensah").post("/api/runs", json={"kind": "evening"})
     api.as_user("hessa.almansoori").put("/api/admin/clock", json={"now": "2026-07-29T17:00:00"})
-    worker = api.as_user("arjun.thapa")
+    worker = api.as_user("marco.villanueva")
     assert worker.post("/api/phone/unwell", json={}).status_code == 201
     screening = api.as_user("sara.ibrahim").get("/api/health/screening").json()
     assert any(
-        s["worker"] == "Arjun Thapa" and s["why"] == "Reported feeling unwell" for s in screening
+        s["worker"] == "Marco Villanueva" and s["why"] == "Reported feeling unwell"
+        for s in screening
     )
     issuer = api.as_user("priya.raman")
     for p in issuer.get("/api/permits").json()["permits"]:
         events = issuer.get(f"/api/permits/{p['id']}").json()["events"]
         for e in events:
-            assert "Arjun" not in e["text"] and "Thapa" not in e["text"]
+            assert "Marco" not in e["text"] and "Villanueva" not in e["text"]
     assert any(
         e["kind"] == "worker_unwell"
         for p in issuer.get("/api/permits").json()["permits"]

@@ -297,7 +297,7 @@ def _labs_and_outcomes(ctx: Ctx) -> None:
             else "No work above the second tier for 7 days.",
             share_with_employer=bool(ctx.rng.random() < 0.85),
         )
-    # One of Arjun's gang mates, cleared by the clinician on 19 July.
+    # One of Marco's gang mates, cleared by the clinician on 19 July.
     gang3 = [
         ctx.person_id[i]
         for i, w in enumerate(ctx.workers)

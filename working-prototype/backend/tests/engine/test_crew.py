@@ -47,18 +47,18 @@ def test_budget_shows_three_and_rolls_rest_into_brief() -> None:
     assert [i["r"] for i in rolled] == [1.92, 1.91]
 
 
-def test_arjun_swap_proposal_is_ground_twist_lock_handling(scenario: Session) -> None:
+def test_marco_swap_proposal_is_ground_twist_lock_handling(scenario: Session) -> None:
     shift = scenario.scalars(
         select(Shift).where(Shift.date == date(2026, 7, 29), Shift.kind == ShiftKind.NIGHT)
     ).one()
     run = run_scores(scenario, shift.id, RunKind.EVENING)
-    arjun = scenario.scalars(
-        select(Person).where(Person.email == "arjun.thapa@mirsalterminals.com")
+    marco = scenario.scalars(
+        select(Person).where(Person.email == "marco.villanueva@mirsalterminals.com")
     ).one()
     proposal = scenario.scalars(
         select(SwapProposal)
         .join(Assignment, Assignment.id == SwapProposal.assignment_id)
-        .where(SwapProposal.run_id == run.id, Assignment.person_id == arjun.id)
+        .where(SwapProposal.run_id == run.id, Assignment.person_id == marco.id)
     ).one()
     target = scenario.get_one(Activity, proposal.to_activity_id)
     assert target.code == "TWIST_GROUND"
