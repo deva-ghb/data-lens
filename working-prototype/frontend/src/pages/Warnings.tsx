@@ -63,7 +63,11 @@ export function Warnings() {
                           <div key={z.zone} className={`zone zone--${z.level}`} title={z.classes.length ? `Signals up: ${z.classes.join(", ")}` : "Within baseline"}>
                             <span className="zone__name">{z.zone}</span>
                             <span className="zone__level">{titleCase(z.level)}</span>
-                            {z.late_feeds.length > 0 && <span className="zone__late">Late: {z.late_feeds.join(", ")}</span>}
+                            {z.late_feeds.length > 0 && (
+                              <span className="zone__late" title={`Late: ${z.late_feeds.join(", ")}`}>
+                                {z.late_feeds.length === 1 ? "1 late feed" : `${z.late_feeds.length} late feeds`}
+                              </span>
+                            )}
                           </div>
                         ))}
                     </div>
