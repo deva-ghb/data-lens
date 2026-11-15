@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.api.common import SessionDep, require_role, require_scope
 from app.clock import site_now
+from app.engine.layers import live_window
 from app.engine.run import evening_shift, run_scores
 from app.errors import ApiError
 from app.models import Person, Shift
@@ -37,6 +38,11 @@ def start_run(
     shift = session.get(Shift, body.shift_id) if body.shift_id else default_shift(session, kind)
     if shift is None:
         raise ApiError(404, "not_found", "There is no shift to score.")
+    if source == ConditionsSource.LIVE and live_window(session) is None:
+        # Scoring without heat would lower everyone's risk on a hot night; refuse instead.
+        raise conflict(
+            "The live forecast is not available right now. Score with the scenario forecast."
+        )
     run = run_scores(session, shift.id, kind, source, actor=user)
     session.commit()
     return {"run_id": run.id, "shift_id": shift.id}
@@ -292,16 +298,21 @@ def layer_build(
                 "drivers": [d for d in drivers if d["layer"] == "condition"],
             },
             {
+                # The total includes the behavioural group. Per-factor numbers would let
+                # anyone divide it back out, so the profile names its drivers without them.
                 "name": "profile",
                 "value": s.profile,
-                "drivers": [d for d in drivers if d["layer"] == "profile"],
+                "drivers": [
+                    {k: v for k, v in d.items() if k not in ("multiplier", "contribution")}
+                    for d in drivers
+                    if d["layer"] == "profile"
+                ],
             },
         ],
         "r": round(s.r, 2),
         "tier": s.tier.value,
         "thresholds": list(weights.thresholds[act.grade]),
         "confidence": s.confidence,
-        "group_step_limited": s.group_step_limited,
         "reason": _reason(s.drivers_json),
         "late_feeds": next(
             (d.get("late_feeds", []) for d in s.drivers_json if d.get("name") == "reason"), []

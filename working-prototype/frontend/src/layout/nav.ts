@@ -72,7 +72,7 @@ export const NAV: NavGroup[] = [
     label: "Governance",
     items: [
       { to: "/governance", label: "Governance", icon: ShieldCheck, roles: ["hse_head", "admin", "authority"] },
-      { to: "/audit", label: "Audit trail", icon: ScrollText, roles: ["hse_head", "admin", "authority"] },
+      { to: "/audit", label: "Audit trail", icon: ScrollText, roles: ["hse_head", "authority"] },
       { to: "/signals", label: "Signals", icon: Radio, roles: ["hse_head", "admin"] },
     ],
   },

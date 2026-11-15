@@ -112,3 +112,22 @@ def test_activities_and_groups(api) -> None:  # type: ignore[no-untyped-def]
     assert len(groups) == 6
     assert all("members" not in g for g in groups)
     assert next(g for g in groups if g["code"] == "NEW_CONTRACTOR")["multiplier"] == 1.6
+
+
+def test_live_run_without_live_forecast_is_refused(api) -> None:  # type: ignore[no-untyped-def]
+    """No live data must never score heat as neutral: the run is refused and says why."""
+    planner = api.as_user("daniel.mensah")
+    r = planner.post("/api/runs", json={"kind": "evening", "conditions_source": "live"})
+    assert r.status_code == 409
+    assert "live forecast" in r.json()["message"].lower()
+
+
+def test_build_never_lets_the_group_effect_be_worked_out(api) -> None:  # type: ignore[no-untyped-def]
+    """The profile total includes the behavioural group, so no per-factor number sits under it."""
+    planner = api.as_user("daniel.mensah")
+    row = _arjun_row(_roster(planner))
+    build = planner.get(f"/api/assignments/{row['assignment_id']}/build").json()
+    profile = next(layer for layer in build["layers"] if layer["name"] == "profile")
+    assert profile["drivers"], "the profile still names what drives it"
+    assert all("multiplier" not in d and "contribution" not in d for d in profile["drivers"])
+    assert "group_step_limited" not in build

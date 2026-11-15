@@ -59,12 +59,13 @@ const SWAP_WORDS: Record<string, string> = {
 export function Roster() {
   const roster = useGet<RosterData>("/api/roster");
   const [source, setSource] = useState("scenario");
-  const run = useSend<{ kind: string; conditions_source: string }>("POST", "/api/runs");
+  const run = useSend<{ kind: string; conditions_source: string; shift_id?: number }>("POST", "/api/runs");
   const toast = useToast();
 
   const score = (kind: string) =>
     run.mutate(
-      { kind, conditions_source: source },
+      // A re-score is of the shift on screen; the evening run picks tomorrow night itself.
+      { kind, conditions_source: source, shift_id: kind === "manual" ? roster.data?.shift.id : undefined },
       {
         onSuccess: () => toast({ title: "Roster scored", body: source === "live" ? "Using today's live Abu Dhabi forecast." : "Using the scenario forecast.", tone: "good" }),
         onError: (e) => toast({ title: "Scoring failed", body: e.message, tone: "critical" }),

@@ -122,7 +122,8 @@ test("the lasher's night, from the evening run to the closed warning", async ({ 
   await confirmWritten(hse, "Verify on the ground", "Check one: how many cooling units run tonight? Check two: who sleeps in the hot rooms?");
   await confirmWritten(hse, "Controls", "Engineer: repair the cooling units within 48 hours. Administrative: cool room open all night.");
   const warningUrl = hse.url();
-  await issuer.goto(warningUrl);
+  await issuer.goto("/");
+  await issuer.getByRole("link", { name: "confirm the permits affected" }).click();
   await confirmWritten(issuer, "Permits affected", "Night permits at Berth 2 carry the deck WBGT stop rule and buddy pairs.");
   await hse.reload();
   await confirmWritten(hse, "Learning", "Card: a hot room means a hot shift; tell your foreman. Proposed safe working practice change: check camp cooling before night rosters.");

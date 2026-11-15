@@ -87,7 +87,7 @@ def _decisions(session, user: Person) -> list[dict[str, Any]]:  # type: ignore[n
                 {
                     "title": f"Approve the swap for {p.first_name} {p.last_name}",
                     "detail": sp.reason,
-                    "link": "/roster",
+                    "link": "/swaps",
                     "tone": "critical",
                 }
             )
@@ -104,16 +104,50 @@ def _decisions(session, user: Person) -> list[dict[str, Any]]:  # type: ignore[n
                     WarningStep.status == WarningStepStatus.DRAFTED,
                 )
             ).all()
+            detected = session.scalar(
+                select(WarningStep.id).where(
+                    WarningStep.warning_id == record.id,
+                    WarningStep.step == 1,
+                    WarningStep.status == WarningStepStatus.CONFIRMED,
+                )
+            )
             out.insert(
                 0,
                 {
-                    "title": f"Early warning in {zone.name}: confirm the detection",
+                    "title": f"Early warning in {zone.name}: "
+                    + ("continue the record" if detected else "confirm the detection"),
                     "detail": f"{len(drafted)} sections drafted and waiting for you.",
                     "link": f"/warnings/{record.id}",
                     "tone": "critical",
                 },
             )
     if role == Role.PERMIT_ISSUER:
+        # Step 8 of a warning (permits affected) is the issuer's to sign once controls are set.
+        waiting = session.execute(
+            select(WarningRecord, Zone)
+            .join(Zone, Zone.id == WarningRecord.zone_id)
+            .where(WarningRecord.status == WarningStatus.OPEN)
+        ).all()
+        for record, zone in waiting:
+            steps = dict(
+                session.execute(
+                    select(WarningStep.step, WarningStep.status).where(
+                        WarningStep.warning_id == record.id, WarningStep.step.in_([7, 8])
+                    )
+                ).all()
+            )
+            if (
+                steps.get(7) == WarningStepStatus.CONFIRMED
+                and steps.get(8) != WarningStepStatus.CONFIRMED
+            ):
+                out.append(
+                    {
+                        "title": f"Early warning in {zone.name}: confirm the permits affected",
+                        "detail": "The controls are agreed. Your section sets the permit conditions.",
+                        "link": f"/warnings/{record.id}",
+                        "tone": "critical",
+                    }
+                )
         shift = focus_shift(session)
         if shift is not None:
             for permit in session.scalars(

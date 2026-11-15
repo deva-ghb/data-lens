@@ -105,7 +105,8 @@ export function WarningRecord({ me }: { me: Me }) {
 
 function StepView({ warningId, step, me, open }: { warningId: number; step: Step; me: Me; open: boolean }) {
   const toast = useToast();
-  const draft = useSend<{ refresh: boolean }>("POST", `/api/warnings/${warningId}/steps/${step.step}/draft`);
+  const draft = useSend<{ refresh: boolean }, { draft: { status: string } | null }>("POST", `/api/warnings/${warningId}/steps/${step.step}/draft`);
+  const aiOn = useMeta().data?.ai_available ?? false;
   const confirm = useSend<{ content: string }>("POST", `/api/warnings/${warningId}/steps/${step.step}/confirm`);
   const d = toDraft(step.draft);
   const mine = canConfirm(me.role, step.confirmer_role);
@@ -142,8 +143,26 @@ function StepView({ warningId, step, me, open }: { warningId: number; step: Step
         )}
         {!d && open && step.step < 10 && !writing && (mine || me.role === "hse_head") && (
           <div className="row">
-            {(me.role === "hse_head" || me.role === "permit_issuer") && (
-              <Button size="sm" variant="secondary" icon={<Sparkles />} busy={draft.isPending} onClick={() => draft.mutate({ refresh: false }, { onError: (e) => toast({ title: "No draft", body: e.message, tone: "critical" }) })}>
+            {me.role === "hse_head" && aiOn && (
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={<Sparkles />}
+                busy={draft.isPending}
+                onClick={() =>
+                  draft.mutate(
+                    { refresh: false },
+                    {
+                      onSuccess: (r) => {
+                        if (r.draft?.status === "unavailable") {
+                          toast({ title: "Draft not available", body: "The copilot could not be reached. Write this section yourself.", tone: "warning" });
+                          setWriting(true);
+                        }
+                      },
+                    },
+                  )
+                }
+              >
                 Draft this section
               </Button>
             )}
@@ -152,7 +171,7 @@ function StepView({ warningId, step, me, open }: { warningId: number; step: Step
                 Write it yourself
               </Button>
             )}
-            <span className="xsmall muted">The copilot writes from the record so far, or you write it. Nothing is saved until you confirm.</span>
+            <span className="xsmall muted">{aiOn && me.role === "hse_head" ? "The copilot writes from the record so far, or you write it." : "The copilot is not available, so you write this section."} Nothing is saved until you confirm.</span>
           </div>
         )}
         {!d && open && writing && (

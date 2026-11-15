@@ -42,10 +42,17 @@ export function Warnings() {
       }
     >
       <Loaded query={listing}>
-        {(data) => (
+        {(data) => {
+          const late = [...new Set(data.zones.flatMap((z) => z.late_feeds))];
+          return (
           <div className="stack">
             <Card title="Site map" subtitle={`Deviation from each place's own baseline, day ending ${data.day}`}>
               <div className="stack">
+                {late.length > 0 && (
+                  <p className="late-banner small" role="status">
+                    Late: {late.join(", ")}. Places that rely on {late.length === 1 ? "this feed" : "these feeds"} are shown one level lower until it catches up.
+                  </p>
+                )}
                 {KIND_ORDER.map((kind) => (
                   <div key={kind} className="stack stack--tight">
                     <span className="section-title">{KIND_LABEL[kind]}</span>
@@ -56,6 +63,7 @@ export function Warnings() {
                           <div key={z.zone} className={`zone zone--${z.level}`} title={z.classes.length ? `Signals up: ${z.classes.join(", ")}` : "Within baseline"}>
                             <span className="zone__name">{z.zone}</span>
                             <span className="zone__level">{titleCase(z.level)}</span>
+                            {z.late_feeds.length > 0 && <span className="zone__late">Late: {z.late_feeds.join(", ")}</span>}
                           </div>
                         ))}
                     </div>
@@ -87,7 +95,8 @@ export function Warnings() {
               <Table caption="Closed warnings" columns={columns} rows={data.closed} rowKey={(w) => String(w.id)} onRowClick={(w) => navigate(`/warnings/${w.id}`)} />
             </Card>
           </div>
-        )}
+          );
+        }}
       </Loaded>
     </Page>
   );

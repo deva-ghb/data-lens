@@ -60,7 +60,8 @@ const TONE: Record<Tier, string> = { fit: "good", fit_with_controls: "warning", 
 export function PermitDetail({ me }: { me: Me }) {
   const { permitId } = useParams();
   const permit = useGet<Permit>(`/api/permits/${permitId}`);
-  const canAct = me.role === "permit_issuer" || me.role === "hse_head";
+  // Only the permit issuer signs, holds or edits a permit; others read it.
+  const canAct = me.role === "permit_issuer";
   return (
     <Loaded query={permit}>
       {(p) => (
@@ -219,7 +220,7 @@ function ConditionRow({ permitId, condition, canAct }: { permitId: number; condi
           <span className="small">{condition.text}</span>
         )}
         <span className="xsmall muted">
-          {condition.origin === "warning" ? `From early warning ${condition.warning_id}` : "Added by the issuer"} · {titleCase(condition.status)}
+          {condition.origin === "warning" ? <Link className="link" to={`/warnings/${condition.warning_id}`}>From early warning {condition.warning_id}</Link> : "Added by the issuer"} · {titleCase(condition.status)}
         </span>
       </div>
       {canAct && condition.status !== "rejected" && (

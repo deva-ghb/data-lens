@@ -8,7 +8,7 @@ import { Loaded, pct } from "./common";
 import "./pages.css";
 import "./build.css";
 
-type Driver = { layer: string; name: string; multiplier: number; contribution: number; source: string; freshness_hours: number | null; reason: string };
+type Driver = { layer: string; name: string; multiplier?: number; contribution?: number; source: string; freshness_hours: number | null; reason: string };
 type Build = {
   worker: string;
   activity: string;
@@ -18,7 +18,6 @@ type Build = {
   tier: Tier;
   thresholds: [number, number];
   confidence: number;
-  group_step_limited: boolean;
   reason: string;
   late_feeds: string[];
 };
@@ -107,8 +106,6 @@ export function AssignmentBuild() {
                   <dl className="kv">
                     <dt>Confidence</dt>
                     <dd>{pct(b.confidence)}</dd>
-                    <dt>Group limit</dt>
-                    <dd>{b.group_step_limited ? "Applied: the group moved the tier by one step only" : "Not needed"}</dd>
                     <dt>Late feeds</dt>
                     <dd>{b.late_feeds.length ? b.late_feeds.join(", ") : "None"}</dd>
                   </dl>
@@ -128,7 +125,7 @@ export function AssignmentBuild() {
                         <li key={d.name} className="stack stack--tight">
                           <div className="row row--between">
                             <span className="small" style={{ fontWeight: 500 }}>{NAMES[d.name] ?? d.name}</span>
-                            <span className={d.multiplier > 1.001 ? "num small build__up" : "num small muted"}>× {d.multiplier.toFixed(3)}</span>
+                            {d.multiplier !== undefined && <span className={d.multiplier > 1.001 ? "num small build__up" : "num small muted"}>× {d.multiplier.toFixed(3)}</span>}
                           </div>
                           <span className="small muted">{d.reason}</span>
                           <span className="xsmall muted">

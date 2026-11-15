@@ -59,3 +59,26 @@ def test_home_requires_sign_in(api) -> None:  # type: ignore[no-untyped-def]
 
     response = TestClient(app).get("/api/home")
     assert response.status_code == 401
+
+
+def test_issuer_is_sent_to_the_warning_section_only_they_sign(api, echo_brief) -> None:  # type: ignore[no-untyped-def]
+    hse = api.as_user("layla.haddad")
+    warning = hse.get("/api/warnings").json()["open"][0]
+    for n in (1, 2, 3, 4, 5, 6, 7):
+        r = hse.post(
+            f"/api/warnings/{warning['id']}/steps/{n}/confirm", json={"content": f"Section {n}."}
+        )
+        assert r.status_code == 200, r.text
+    decisions = api.as_user("priya.raman").get("/api/home").json()["decisions"]
+    assert decisions[0]["link"] == f"/warnings/{warning['id']}"
+    assert "permits affected" in decisions[0]["title"].lower()
+
+
+def test_shift_manager_decision_opens_the_swaps_screen(api, echo_brief) -> None:  # type: ignore[no-untyped-def]
+    planner = api.as_user("daniel.mensah")
+    planner.post("/api/runs", json={"kind": "evening"})
+    roster = planner.get("/api/roster").json()
+    swap = next(r["swap"] for r in roster["rows"] if r.get("swap"))
+    assert planner.post(f"/api/swaps/{swap['id']}/accept", json={}).status_code == 200
+    decisions = api.as_user("khalid.alnuaimi").get("/api/home").json()["decisions"]
+    assert decisions and all(d["link"] == "/swaps" for d in decisions)
