@@ -32,12 +32,3 @@ Public health officer	District aggregates of 10 or more	District actions and the
 
 
 Labour inspector	District and employer aggregates, plus the audit trail	Where to inspect
-
-
----
-Admin onboards the people -> worker 
-Key concepts: 
-
-
-To prepare role versus, I think we firstly need to keep the roles limited.
-Reduce the number of roles in the system first of all, if possible. Otherwise, we can keep it as it is.
