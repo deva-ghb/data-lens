@@ -68,7 +68,6 @@ The worker decides what the employer sees.
 
 Want the full end-to-end walkthrough of the product?
 Watch it here: [link to the 12-minute walkthrough]
-Code: https://github.com/deva-ghb/data-lens
 
 Chapters:
 0:00 What Data Lens is
