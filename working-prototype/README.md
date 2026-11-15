@@ -42,6 +42,37 @@ It starts the backend on port 8000 and the frontend on port 5173.
 It installs the frontend packages the first time if they are missing.
 Press Ctrl+C once to stop both.
 
+## Sign in
+
+Every account uses the password `welcome@123`.
+Each of the 400 workers also has an account, named `firstname.lastname@mirsalterminals.com`.
+The people in the demo story:
+
+| Email | Role |
+|---|---|
+| `daniel.mensah@mirsalterminals.com` | Planner |
+| `khalid.alnuaimi@mirsalterminals.com` | Shift manager |
+| `priya.raman@mirsalterminals.com` | Permit issuer |
+| `joseph.kariuki@mirsalterminals.com` | Foreman (phone view) |
+| `marco.villanueva@mirsalterminals.com` | Worker, the lasher in the story (phone view, Tagalog) |
+| `layla.haddad@mirsalterminals.com` | Head of health, safety and environment |
+| `sara.ibrahim@mirsalterminals.com` | Occupational health clinician |
+| `ahmed.alshamsi@mirsalterminals.com` | District authority |
+| `hessa.almansoori@mirsalterminals.com` | Admin, who also runs the site clock |
+
+## Reset the story
+
+The app starts on Tuesday 28 July 2026, 18:00 site time, the evening before the story night.
+To go back to that point, stop the app and run `cd backend && uv run python scripts/reset.py`.
+The admin's Site clock page moves time to the story's key moments.
+`uv run python scripts/replay_sensor.py --from 2026-07-29T15:00 --to 2026-07-29T16:30` replays the Berth 2 deck sensor into a running app, which is what triggers the foreman's work-rest change.
+`uv run python scripts/seed.py --fresh` rebuilds the database from the seed, deterministically.
+
+## Demo video
+
+`video/` holds everything that records the demo: the shot list (`flow.md`), the recorder (`rec.mjs`), the story cards, the narration (`script.json`), the backing track (`music.py`) and the build steps.
+Footage and the finished video are generated, so they are not in git.
+
 ## Settings
 
 Settings are read from the environment and from the root `.env` file.
