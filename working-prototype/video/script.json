@@ -1,294 +1,76 @@
 {
-  "size": [
-    1920,
-    1080
-  ],
-  "voice": {
-    "engine": "auto",
-    "azure": "en-US-AndrewNeural",
-    "system": "Daniel",
-    "rate": "+2%"
-  },
+  "size": [1920, 1080],
+  "voice": { "engine": "auto", "azure": "en-US-AndrewNeural", "system": "Daniel", "rate": "-6%" },
   "timeline": [
-    {
-      "beats": [
-        "login"
-      ],
-      "line": "Data Lens helps a container terminal decide who does which job on a hot night, spot trouble days early, and keep health detail private. Here's one night at Mirsal Terminals, through every person who uses it. Our lasher is Marco. His daughter Bea, back in Iloilo, thinks he ties ships to the sea."
-    },
-    {
-      "beats": [
-        "brief"
-      ],
-      "line": "It's six in the evening before a hot night. Daniel plans the roster. His brief leads with three decisions, not thirty charts."
-    },
-    {
-      "beats": [
-        "score"
-      ],
-      "line": "One click scores tomorrow night's roster. One hundred and sixty six people on graded work."
-    },
-    {
-      "beats": [
-        "tiles"
-      ],
-      "line": "A hundred and nine fit. Fifty four fit with controls. Three to reassign. Three is the limit, so nobody cries wolf."
-    },
-    {
-      "beats": [
-        "marco"
-      ],
-      "line": "Marco is one of the three. Third night in a row, short sleep, a refresher not done, broken coolers in his camp block, and thirty five degrees forecast."
-    },
-    {
-      "beats": [
-        "build"
-      ],
-      "line": "Every number is shown, layer by layer. The planner sees work reasons. Never a diagnosis, and never his group."
-    },
-    {
-      "beats": [
-        "split"
-      ],
-      "line": "Seventy percent of tonight's risk is the shift itself: heat, night and the camp. Crew rules show where whole gangs are stretched."
-    },
-    {
-      "beats": [
-        "accept"
-      ],
-      "line": "Daniel accepts the swap. Ground twist-lock handling, same crew. Marco keeps his mates and loses the ladder."
-    },
-    {
-      "beats": [
-        "ask"
-      ],
-      "line": "Daniel asks the copilot a question. It answers only from what a planner may see."
-    },
-    {
-      "beats": [
-        "decline"
-      ],
-      "line": "Then he asks for Marco's lab results. It says no, politely. Some answers belong to the clinic."
-    },
-    {
-      "beats": [
-        "activities"
-      ],
-      "line": "The activity register shows each job's hazards, hours, safe working practice, and how well its controls held."
-    },
-    {
-      "beats": [
-        "groups"
-      ],
-      "line": "Behavioural groups explain patterns across twenty people or more. Never one person, and never origin or language."
-    },
-    {
-      "beats": [
-        "approve"
-      ],
-      "line": "Khalid, the shift manager, approves. The planner proposes, the manager approves. Two people, one log."
-    },
-    {
-      "beats": [
-        "sitemap"
-      ],
-      "line": "Next day, Layla, the head of safety, opens the site map. Camp Block C is on watch, one level down because a feed is late, and the map says which one."
-    },
-    {
-      "beats": [
-        "record"
-      ],
-      "line": "Behind it sits an open warning record. Heat visits at the clinic and cooling faults rose together, each against the camp's own baseline."
-    },
-    {
-      "beats": [
-        "confirm"
-      ],
-      "line": "The copilot drafts, Layla confirms. Nothing counts until a person signs it."
-    },
-    {
-      "beats": [
-        "draft"
-      ],
-      "line": "She asks for the drivers section. Drafted in seconds, read, and signed."
-    },
-    {
-      "beats": [
-        "inspection"
-      ],
-      "line": "One click builds the inspection: one check per driver, where and when it matters."
-    },
-    {
-      "beats": [
-        "action"
-      ],
-      "line": "Then a real action. Fix eleven coolers, with an owner and a date to check it worked. Not a newsletter."
-    },
-    {
-      "beats": [
-        "phone"
-      ],
-      "line": "Six in the evening. Marco's phone explains the change in Filipino. His language, his reason."
-    },
-    {
-      "beats": [
-        "english"
-      ],
-      "line": "One tap shows it in English, for the rest of us."
-    },
-    {
-      "beats": [
-        "checkin"
-      ],
-      "line": "Check-in is three taps. Slept six to seven hours. Feeling good. Water, yes. Bea would approve."
-    },
-    {
-      "beats": [
-        "report"
-      ],
-      "line": "He spots a loose ladder rung and reports it in one line. The copilot turns it into a proper record."
-    },
-    {
-      "beats": [
-        "cards"
-      ],
-      "line": "Safety cards come from confirmed lessons, short enough to read on the bus."
-    },
-    {
-      "beats": [
-        "issuer-step"
-      ],
-      "line": "Priya issues permits. The warning hands her one section to sign: which permits carry the camp's conditions."
-    },
-    {
-      "beats": [
-        "permits"
-      ],
-      "line": "Each permit shows crew readiness as counts. Never names."
-    },
-    {
-      "beats": [
-        "sign"
-      ],
-      "line": "She accepts the warning's conditions, assesses the permit, and signs it."
-    },
-    {
-      "beats": [
-        "clock",
-        "start"
-      ],
-      "line": "Seven o'clock. Shift start. Work begins."
-    },
-    {
-      "beats": [
-        "rescore"
-      ],
-      "line": "The roster scores again. Kiran didn't check in, so he's unknown, not fit. No data is not good news."
-    },
-    {
-      "beats": [
-        "foreman"
-      ],
-      "line": "At Berth 2 the deck sensor stays above thirty two for half an hour. Joseph, the foreman, gets one clear change: rest, shade and water. One tap."
-    },
-    {
-      "beats": [
-        "unwell"
-      ],
-      "line": "Sunita feels unwell. Two taps, and the clinic knows."
-    },
-    {
-      "beats": [
-        "permitlog"
-      ],
-      "line": "The permit log says a crew member went to the cool room. It doesn't say who. That's on purpose."
-    },
-    {
-      "beats": [
-        "reportconfirm"
-      ],
-      "line": "At her desk, Layla confirms Marco's ladder report. Now it counts in the job's safety history."
-    },
-    {
-      "beats": [
-        "learning"
-      ],
-      "line": "The lesson is drafted, signed, and shared with the crews who need it."
-    },
-    {
-      "beats": [
-        "validation"
-      ],
-      "line": "Does any of this work? On ninety days of history it caught four of four events, at least seventy four hours early."
-    },
-    {
-      "beats": [
-        "feedsoff"
-      ],
-      "line": "Switch the clinic feed off and you see exactly what you lose. No silent gaps."
-    },
-    {
-      "beats": [
-        "impact"
-      ],
-      "line": "The impact calculator runs on your numbers, not ours."
-    },
-    {
-      "beats": [
-        "clinic"
-      ],
-      "line": "Sara, the clinician, sees the health detail and has the final word: fit, with restrictions."
-    },
-    {
-      "beats": [
-        "consent"
-      ],
-      "line": "Marco decides whether his employer sees that outcome. He shares it. His call."
-    },
-    {
-      "beats": [
-        "district"
-      ],
-      "line": "The authority sees district totals. Small groups stay hidden. Privacy is the default, not a setting."
-    },
-    {
-      "beats": [
-        "audit"
-      ],
-      "line": "Every draft and every decision lands in an audit trail nobody can edit. Not even Layla. She checked."
-    },
-    {
-      "beats": [
-        "governance"
-      ],
-      "line": "Governance shows who sees what, the privacy threshold, and model weights that change only when a person approves."
-    },
-    {
-      "beats": [
-        "signals"
-      ],
-      "line": "Every feed shows how fresh it is. Late is named, not guessed. A new feed connects from a spreadsheet."
-    },
-    {
-      "beats": [
-        "onboard"
-      ],
-      "line": "Hessa, the admin, onboards a new foreman in under a minute."
-    },
-    {
-      "beats": [
-        "close"
-      ],
-      "line": "Morning. The warning closes as right. That's how lead time and false alarms get measured."
-    },
-    {
-      "beats": [
-        "home"
-      ],
-      "line": "And at one in the afternoon in Iloilo, Bea gets her video call. Dad's tired. Dad's fine. Dad's home in August. That's the whole point.",
-      "still": {
-        "home": 6
-      }
-    }
+    { "beats": ["card-title"], "line": "This is Data Lens. It helps a busy container terminal decide, before each shift, who should do which job, and spot trouble while there is still time to act." },
+    { "beats": ["card-problem"], "line": "Picture a port in the Gulf in July. It is thirty five degrees on deck, at night. Four hundred people from three employers work rotating shifts, many of them new. And when a ship berths, the work happens that night, however tired the crew is." },
+    { "beats": ["card-idea"], "line": "Data Lens does three jobs. Before the shift, it scores tomorrow's roster against the work each person is given. Days ahead, it watches clinic visits, camp faults and near misses for trouble building. And all the time, it keeps health detail with the clinic, where it belongs." },
+    { "beats": ["card-loop"], "line": "Here is the whole loop for one night. Plan the roster. Approve any change. Workers check in. Permits get signed. The site is watched through the shift. Then everyone learns from what happened. Every step belongs to a person. The software suggests, people decide." },
+    { "beats": ["tiles"], "line": "This is what the planner sees: tomorrow's crew, sorted into fit, fit with controls, and the few who should do something else tonight." },
+    { "beats": ["sitemap"], "line": "The head of safety gets a map of the whole site, each place measured against its own normal." },
+    { "beats": ["phone"], "line": "Workers get a simple phone screen, in their own language." },
+    { "beats": ["permits"], "line": "And permits to work show each crew's readiness as counts. Never names." },
+    { "beats": ["card-crew"], "line": "Eight roles use it, and each sees only what the job needs. The planner, the shift manager, the permit issuer and the foreman plan and run the night." },
+    { "beats": ["card-care"], "line": "The head of safety, the clinician, the district authority and the admin keep it safe, private and fair." },
+    { "beats": ["card-marco"], "line": "To see how it all fits together, we will follow one worker through one night. This is Marco Villanueva, a lasher from Iloilo, in the Philippines. Tomorrow will be his third night in a row. Back home, his daughter Bea tells her class that her dad ties ships to the sea." },
+
+    { "beats": ["card-ch1"], "line": "Chapter one. Tuesday, six in the evening. A ship berths tomorrow night, and Daniel, the planner, has to decide who does what." },
+    { "beats": ["login"], "line": "Daniel signs in with his work email. Everyone at Mirsal has an account, from the admin to each of the four hundred workers." },
+    { "beats": ["brief"], "line": "His home page opens with a short brief, written by the copilot. It leads with the decisions he needs to make, using only data a planner is allowed to see." },
+    { "beats": ["score"], "line": "He scores tomorrow night's roster. One click, and a hundred and sixty six people on graded work each get a score against the job they have been given." },
+    { "beats": ["tiles"], "line": "A hundred and nine are fit. Fifty four are fit with extra controls, like buddy pairs and more breaks. Three should do something else tonight. Data Lens never recommends more than three per shift, so the list stays short enough to act on." },
+    { "beats": ["marco"], "line": "Marco is one of the three. The reasons are in plain work terms. A third night in a row. Short sleep twice in his last ten check-ins. A height refresher not done. Broken cooling in his camp block. And a forecast of thirty five degrees." },
+    { "beats": ["build"], "line": "Daniel can open the full breakdown: the job's own risk, how well its controls have held, tonight's conditions, and Marco's readiness, multiplied together. He sees work reasons. Never a diagnosis, and never which group Marco belongs to." },
+    { "beats": ["split"], "line": "This card answers a useful question. Is tonight's risk about the people, or the shift? Here, seventy percent is the shift itself: heat, night, and the camp. Below it, crew rules flag gangs where too many people need extra controls." },
+    { "beats": ["accept"], "line": "The fix is simple. Data Lens proposes moving Marco to ground twist-lock handling, with his own crew. Daniel accepts. Marco keeps his mates, and loses the ladder, for one night." },
+    { "beats": ["ask"], "line": "Daniel can also ask the copilot questions in plain English. It answers from the data a planner is allowed to see." },
+    { "beats": ["decline"], "line": "So when he asks for Marco's lab results, it politely says no. That answer belongs to the clinic." },
+    { "beats": ["activities"], "line": "Underneath it all is the activity register. Each job has its hazards, its hours, its safe working practice, and a record of how well its controls have held." },
+    { "beats": ["groups"], "line": "Behavioural groups explain patterns across twenty people or more, like new arrivals on a contractor induction. They point at the system, never at one person. And origin or language are never inputs." },
+    { "beats": ["approve"], "line": "A change of job needs a second signature. Khalid, the shift manager, sees the planner's proposal and the reason behind it, and approves. Two people. One log." },
+
+    { "beats": ["card-ch2"], "line": "Chapter two. Wednesday afternoon. Something has been building where the night crews sleep." },
+    { "beats": ["sitemap"], "line": "Layla, the head of safety, opens the site map. Camp Block C is on watch. It shows one level lower than it might, because a feed is late, and the map says which one. Nothing is filled in by guesswork." },
+    { "beats": ["record"], "line": "Behind it sits an open warning record. Heat visits at the clinic and cooling faults in the camp both rose above the camp's own baseline. Two different kinds of signal agree. That is what turns a blip into a warning." },
+    { "beats": ["confirm"], "line": "The record has ten sections, from detection to close. The copilot drafts the first ones from the evidence. Layla reads them, and confirms. Nothing counts until a person signs it." },
+    { "beats": ["draft"], "line": "For the drivers section, she asks the copilot for a draft. It arrives in seconds, saying what it is sure of, what it is not, and what would change its mind." },
+    { "beats": ["inspection"], "line": "One click builds an inspection: one check for each driver, at the place and the time it matters." },
+    { "beats": ["action"], "line": "Then a real action, ranked by the hierarchy of controls. Repair the eleven cooling units, with an owner, a due date, and a date to check that it worked." },
+
+    { "beats": ["card-ch3"], "line": "Chapter three. Wednesday, six in the evening. An hour before the shift." },
+    { "beats": ["phone"], "line": "Marco opens his phone. The change is explained in Filipino, his own language: why he is moving tonight, and that it is not held against him." },
+    { "beats": ["english"], "line": "One tap shows the same message in English." },
+    { "beats": ["checkin"], "line": "Then the check-in. Three taps: how long he slept, how he feels, and whether he has had enough water. About five seconds." },
+    { "beats": ["report"], "line": "On his way, he spots a loose rung on a lashing platform ladder. He reports it in one sentence, and the copilot turns it into a proper safety record." },
+    { "beats": ["cards"], "line": "Safety cards come from lessons the safety team has confirmed. Short enough to read on the bus." },
+    { "beats": ["issuer-step"], "line": "Priya issues permits to work. The camp warning has one section only she can sign: which permits carry extra conditions tonight. Her home page takes her straight there." },
+    { "beats": ["permits"], "line": "Her permits board shows each crew's readiness as a bar of counts: fit, fit with controls, and anyone still to settle." },
+    { "beats": ["sign"], "line": "The warning's conditions arrive on the Berth 2 permit. She accepts them, assesses the permit, and signs it. A permit will not sign while a crew still has a change to settle." },
+
+    { "beats": ["card-ch4"], "line": "Chapter four. Seven o'clock. The night shift begins." },
+    { "beats": ["clock", "start"], "line": "The site clock moves to shift start, and Priya starts work on the permit." },
+    { "beats": ["rescore"], "line": "Daniel scores the roster again, now with fresh check-ins. Kiran never checked in, so he shows as unknown, not fit. No data is never treated as good news." },
+    { "beats": ["foreman"], "line": "At Berth 2, the deck sensor stays above thirty two degrees for half an hour. Joseph, the foreman, gets one clear instruction on his phone: change the work and rest cycle, with shade and water. He confirms with one tap, and the permit log records it." },
+    { "beats": ["unwell"], "line": "Sunita, on the same crew, feels unwell. Two taps, and the clinic knows straight away." },
+    { "beats": ["permitlog"], "line": "The permit log notes that a crew member went to the cool room. It does not say who. That is on purpose." },
+
+    { "beats": ["card-ch5"], "line": "Chapter five. Later that evening, behind the scenes." },
+    { "beats": ["reportconfirm"], "line": "At her desk, Layla reviews Marco's ladder report. The copilot has classified it and traced the chain of what went wrong. She confirms it, and it now counts in that job's history." },
+    { "beats": ["learning"], "line": "She completes the learning section of the camp warning, and shares the result with the crews who need it: a safety card, a toolbox talk, and a proposed change to safe working practice." },
+    { "beats": ["validation"], "line": "Does any of this actually work? Data Lens was tested on ninety days of history with four events hidden in it. It found all four, at least seventy four hours before harm." },
+    { "beats": ["feedsoff"], "line": "Switch off the clinic feed, run the test again, and you see exactly what you lose. Gaps are shown, never hidden." },
+    { "beats": ["impact"], "line": "The impact calculator turns that into injuries and workdays avoided, using your own numbers, not ours." },
+    { "beats": ["clinic"], "line": "Sara, the clinician, is the only person who sees health detail and lab trends. She records Marco's outcome: fit, with restrictions." },
+    { "beats": ["consent"], "line": "Marco decides whether his employer sees that outcome. Only the outcome, never the reason. He chooses to share it." },
+    { "beats": ["district"], "line": "Ahmed, from the district authority, sees totals across employers and camps. Any group under ten people is hidden, and totals are rounded." },
+    { "beats": ["audit"], "line": "He also sees the audit trail, with names replaced by roles. Every draft and every decision is in it, and nobody can edit it. Not even Layla. She checked." },
+    { "beats": ["governance"], "line": "Governance shows who sees what, the privacy threshold, and the model's weights, which only change when a person approves." },
+    { "beats": ["signals"], "line": "Signals lists every data feed and how fresh it is. A late feed is named wherever it is used, and a new one connects from a spreadsheet." },
+    { "beats": ["onboard"], "line": "And Hessa, the admin, brings a new foreman on board in under a minute." },
+
+    { "beats": ["card-ch6"], "line": "Chapter six. Thursday morning. The shift is over." },
+    { "beats": ["close"], "line": "Layla closes the Camp Block C warning and marks it right. Every outcome, right, early or false alarm, is how the warnings are measured and tuned." },
+    { "beats": ["home"], "line": "Marco is tired, and fine. And at one in the afternoon in Iloilo, Bea gets her video call.", "still": { "home": 5 } },
+    { "beats": ["card-end"], "line": "Data Lens. Decide before the shift, catch trouble early, and keep people's health their own." }
   ]
 }

@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Data Lens story cards</title>
+<style>
+  :root {
+    --page: #ffffff; --wash: #f6f7fa; --text: #1f2328; --muted: #656b75; --accent: #4f5db0;
+    --peri-fill: #e4e8f7; --peri-border: #cdd4ee; --peri-ink: #333f8c;
+    --mint-fill: #e6f3eb; --mint-border: #c8e2d1; --mint-ink: #22633f;
+    --sand-fill: #f7efdd; --sand-border: #e9d9b4; --sand-ink: #6f4708;
+    --rose-fill: #f9e6e5; --rose-border: #edcdcb; --rose-ink: #8a2a20;
+    --lilac-fill: #eee7f6; --lilac-border: #dacceb; --lilac-ink: #5a3e8a;
+    --color-page: #ffffff; --color-accent: #4f5db0; --tint-periwinkle-fill: #e4e8f7; --tint-periwinkle-ink: #333f8c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: Inter, -apple-system, "Segoe UI", sans-serif; color: var(--text);
+    background: radial-gradient(1200px 600px at 20% 0%, #eef1fb 0%, rgba(238,241,251,0) 60%),
+                radial-gradient(900px 500px at 100% 100%, #f7f1e4 0%, rgba(247,241,228,0) 55%), var(--wash);
+    display: grid; place-items: center; overflow: hidden;
+  }
+  #__cur { display: none !important; }
+  .card { width: 1180px; display: flex; flex-direction: column; gap: 28px; }
+  .center { align-items: center; text-align: center; }
+  .in { opacity: 0; transform: translateY(10px); animation: rise 1100ms cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .eyebrow { font-size: 18px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  h1 { font-size: 64px; line-height: 1.08; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+  h2 { font-size: 46px; line-height: 1.12; margin: 0; font-weight: 600; }
+  .lead { font-size: 26px; line-height: 1.45; color: #3a3f46; max-width: 900px; margin: 0; }
+  .muted { color: var(--muted); }
+  .logo svg { width: 120px; height: 120px; }
+  .logo.small svg { width: 44px; height: 44px; }
+  .brandline { display: flex; align-items: center; gap: 12px; font-size: 20px; color: #3a3f46; }
+  .tiles { display: grid; gap: 20px; }
+  .tiles.three { grid-template-columns: repeat(3, 1fr); }
+  .tiles.four { grid-template-columns: repeat(4, 1fr); }
+  .tile { border-radius: 18px; padding: 26px 26px 28px; border: 1px solid; display: flex; flex-direction: column; gap: 12px; min-height: 210px; }
+  .tile .icon { width: 44px; height: 44px; }
+  .tile .icon svg { width: 44px; height: 44px; }
+  .tile .k { font-size: 15px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; opacity: .85; }
+  .tile .t { font-size: 26px; font-weight: 600; line-height: 1.2; }
+  .tile .d { font-size: 18px; line-height: 1.45; opacity: .9; }
+  .mint { background: var(--mint-fill); border-color: var(--mint-border); color: var(--mint-ink); }
+  .sand { background: var(--sand-fill); border-color: var(--sand-border); color: var(--sand-ink); }
+  .peri { background: var(--peri-fill); border-color: var(--peri-border); color: var(--peri-ink); }
+  .lilac { background: var(--lilac-fill); border-color: var(--lilac-border); color: var(--lilac-ink); }
+  .rose { background: var(--rose-fill); border-color: var(--rose-border); color: var(--rose-ink); }
+  .person { display: grid; grid-template-columns: 220px 1fr; gap: 44px; align-items: center; }
+  .avatar { width: 220px; height: 220px; border-radius: 50%; display: grid; place-items: center; border: 1px solid; }
+  .avatar svg { width: 104px; height: 104px; }
+  .facts { display: flex; gap: 12px; flex-wrap: wrap; }
+  .pill { font-size: 18px; padding: 8px 16px; border-radius: 999px; border: 1px solid; }
+  .chapter { align-items: flex-start; }
+  .chapter .num { font-size: 22px; color: var(--accent); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .chapter .when { display: flex; gap: 10px; align-items: center; font-size: 24px; color: #3a3f46; }
+  .chapter .when svg { width: 26px; height: 26px; }
+  .steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  .stepbox { border: 1px solid; border-radius: 16px; padding: 20px 18px; display: flex; flex-direction: column; gap: 10px; min-height: 230px; position: relative; }
+  .stepbox .sn { font-size: 15px; font-weight: 700; opacity: .7; }
+  .stepbox .icon svg { width: 36px; height: 36px; }
+  .stepbox .t { font-size: 25px; font-weight: 600; }
+  .stepbox .d { font-size: 17px; line-height: 1.4; opacity: .9; }
+  .rule { width: 120px; height: 4px; border-radius: 2px; background: var(--accent); opacity: .5; }
+</style>
+<script src="icons.js"></script>
+<script src="logos.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const I = (n) => window.ICONS[n] || '';
+const L = (n) => (window.LOGOS || {})[n] || '';
+const d = (ms) => `style="animation-delay:${ms}ms"`;
+
+function tile(cls, icon, k, t, text, delay) {
+  return `<div class="tile ${cls} in" ${d(delay)}><div class="icon">${I(icon)}</div>${k ? `<div class="k">${k}</div>` : ''}<div class="t">${t}</div><div class="d">${text}</div></div>`;
+}
+function step(n, cls, icon, t, text, delay) {
+  return `<div class="stepbox ${cls} in" ${d(delay)}><div class="sn">${n}</div><div class="icon">${I(icon)}</div><div class="t">${t}</div><div class="d">${text}</div></div>`;
+}
+function chapter(n, title, icon, when, line) {
+  return `<div class="card chapter">
+    <div class="num in">Chapter ${n}</div>
+    <h1 class="in" ${d(250)}>${title}</h1>
+    <div class="rule in" ${d(500)}></div>
+    <div class="when in" ${d(700)}>${I(icon)}<span>${when}</span></div>
+    <p class="lead in" ${d(1000)}>${line}</p>
+  </div>`;
+}
+
+const CARDS = {
+  title: `<div class="card center">
+    <div class="logo in">${L('datalens')}</div>
+    <h1 class="in" ${d(300)}>Data Lens</h1>
+    <p class="lead in" ${d(700)}>Workforce risk, decided before the shift.</p>
+    <div class="brandline in" ${d(1300)}><span class="logo small">${L('mirsal')}</span><span>A story from Mirsal Terminals, Abu Dhabi</span></div>
+  </div>`,
+
+  problem: `<div class="card">
+    <div class="eyebrow in">The problem</div>
+    <h2 class="in" ${d(200)}>Summer nights at a Gulf port</h2>
+    <div class="tiles three">
+      ${tile('sand', 'thermometer-sun', '', '35 °C on deck', 'Heat that stays long after sunset, on steel that holds it.', 500)}
+      ${tile('peri', 'users', '', '400 people, 3 employers', 'Lashers, drivers and crane crews, many of them new, on rotating nights.', 800)}
+      ${tile('rose', 'ship', '', 'A ship that will not wait', 'When a vessel berths, the work happens tonight, whoever is tired.', 1100)}
+    </div>
+  </div>`,
+
+  idea: `<div class="card">
+    <div class="eyebrow in">What Data Lens does</div>
+    <h2 class="in" ${d(200)}>Three jobs, one place</h2>
+    <div class="tiles three">
+      ${tile('mint', 'gauge', 'Before the shift', 'Scores tomorrow\'s roster', 'Each person against the job they are given: fit, fit with controls, or move them tonight.', 500)}
+      ${tile('sand', 'radar', 'Days ahead', 'Spots trouble early', 'Clinic visits, camp faults and near misses, each against its own normal, so a cluster shows before an injury.', 800)}
+      ${tile('lilac', 'lock-keyhole', 'Always', 'Keeps health private', 'The clinic keeps the detail. Everyone else sees only what their job needs.', 1100)}
+    </div>
+  </div>`,
+
+  loop: `<div class="card">
+    <div class="eyebrow in">How it works, in one night</div>
+    <h2 class="in" ${d(200)}>Six steps, each owned by a person</h2>
+    <div class="steps">
+      ${step(1, 'mint', 'calendar-clock', 'Plan', 'The planner scores tomorrow\'s roster', 500)}
+      ${step(2, 'peri', 'badge-check', 'Approve', 'A manager signs off any change', 750)}
+      ${step(3, 'rose', 'hard-hat', 'Check in', 'Workers tap in on their phones', 1000)}
+      ${step(4, 'sand', 'file-check', 'Permit', 'The issuer signs, with conditions', 1250)}
+      ${step(5, 'lilac', 'radar', 'Watch', 'Sensors and signals, all night', 1500)}
+      ${step(6, 'mint', 'shield-check', 'Learn', 'Close the loop, prove it worked', 1750)}
+    </div>
+  </div>`,
+
+  marco: `<div class="card person">
+    <div class="avatar peri in">${I('hard-hat')}</div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="eyebrow in" ${d(200)}>One worker, one night</div>
+      <h1 class="in" ${d(350)}>Marco Villanueva</h1>
+      <p class="lead in" ${d(650)}>Lasher, Deck Gang 3. He secures containers to the deck, often two tiers up a ladder.</p>
+      <div class="facts in" ${d(1000)}>
+        <span class="pill peri">From Iloilo, the Philippines</span>
+        <span class="pill sand">Four months on site</span>
+        <span class="pill mint">Tomorrow: his third night in a row</span>
+      </div>
+    </div>
+  </div>`,
+
+  crew: `<div class="card">
+    <div class="eyebrow in">The people who plan his night</div>
+    <div class="tiles four">
+      ${tile('mint', 'calendar-clock', 'Planner', 'Daniel Mensah', 'Decides who does which job, the evening before.', 300)}
+      ${tile('peri', 'badge-check', 'Shift manager', 'Khalid AlNuaimi', 'Approves any change the planner proposes.', 550)}
+      ${tile('sand', 'file-check', 'Permit issuer', 'Priya Raman', 'Signs the permit that lets risky work start.', 800)}
+      ${tile('rose', 'hard-hat', 'Foreman', 'Joseph Kariuki', 'Runs the crew on deck, phone in his pocket.', 1050)}
+    </div>
+  </div>`,
+
+  care: `<div class="card">
+    <div class="eyebrow in">The people who keep it safe and fair</div>
+    <div class="tiles four">
+      ${tile('sand', 'shield-check', 'Head of safety', 'Layla Haddad', 'Watches the whole site for trouble building.', 300)}
+      ${tile('lilac', 'stethoscope', 'Clinician', 'Sara Ibrahim', 'Holds the health detail and the final word on it.', 550)}
+      ${tile('peri', 'landmark', 'District authority', 'Ahmed AlShamsi', 'Sees totals across employers, never names.', 800)}
+      ${tile('mint', 'user-cog', 'Admin', 'Hessa AlMansoori', 'Brings people on board and runs the site clock.', 1050)}
+    </div>
+  </div>`,
+
+  ch1: chapter(1, 'Plan and approve', 'calendar-clock', 'Tuesday 28 July, 6 pm: the evening before', 'A vessel berths tomorrow night. The roster for that shift gets decided now.'),
+  ch2: chapter(2, 'Watch: trouble in the camp', 'radar', 'Wednesday 29 July, 1 pm', 'Something has been building where the night crews sleep.'),
+  ch3: chapter(3, 'Check in and permit', 'clock', 'Wednesday 29 July, 6 pm', 'Phones come out, permits get signed, and the heat does not let up.'),
+  ch4: chapter(4, 'The night shift', 'moon-star', 'Wednesday 29 July, 7 pm', 'The work starts, and the plan meets the real night.'),
+  ch5: chapter(5, 'Learn, and keep it fair', 'shield-check', 'Wednesday 29 July, late evening', 'The safety desk, the clinic, the authority and the rules that keep it honest.'),
+  ch6: chapter(6, 'Close the loop', 'sun', 'Thursday 30 July, 9 am: the morning after', 'The shift is over. Was the warning right?'),
+
+  end: `<div class="card center">
+    <div class="logo in">${L('datalens')}</div>
+    <h1 class="in" ${d(300)}>Decide before the shift.</h1>
+    <p class="lead in" ${d(800)}>Built on real code. Every person, place and number in this story is synthetic.</p>
+    <div class="brandline in" ${d(1300)}><span class="logo small">${L('mirsal')}</span><span>Data Lens for Mirsal Terminals</span></div>
+  </div>`,
+};
+
+const id = new URLSearchParams(location.search).get('card') || 'title';
+document.getElementById('root').innerHTML = CARDS[id] || `<h1>Unknown card ${id}</h1>`;
+</script>
+</body>
+</html>
