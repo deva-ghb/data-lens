@@ -42,6 +42,11 @@ It starts the backend on port 8000 and the frontend on port 5173.
 It installs the frontend packages the first time if they are missing.
 Press Ctrl+C once to stop both.
 
+## Hosted demo
+
+The prototype is live at https://d2v5b43xh6er8w.cloudfront.net.
+`deploy/README.md` says what runs where and how to update it.
+
 ## Sign in
 
 Every account uses the password `welcome@123`.

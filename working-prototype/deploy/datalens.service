@@ -1,0 +1,14 @@
+[Unit]
+Description=Data Lens API
+After=network-online.target
+
+[Service]
+User=ec2-user
+WorkingDirectory=/opt/datalens/backend
+Environment=DATALENS_COOKIE_SECURE=1
+ExecStart=/opt/datalens/backend/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=*
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
