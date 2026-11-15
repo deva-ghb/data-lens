@@ -16,6 +16,7 @@ from app.auth.security import (
     hash_password,
     verify_password,
 )
+from app.config import settings
 from app.errors import ApiError
 from app.models import Employer, Person
 
@@ -69,14 +70,16 @@ def login(
         path="/",
         httponly=True,
         samesite="lax",
-        secure=False,  # local prototype over plain http
+        secure=settings.cookie_secure,  # off for local http, on behind https
     )
     return _user_out(person, session)
 
 
 @router.post("/logout", status_code=204)
 def logout(response: Response) -> None:
-    response.delete_cookie(COOKIE_NAME, path="/", httponly=True, samesite="lax", secure=False)
+    response.delete_cookie(
+        COOKIE_NAME, path="/", httponly=True, samesite="lax", secure=settings.cookie_secure
+    )
 
 
 @router.get("/me")

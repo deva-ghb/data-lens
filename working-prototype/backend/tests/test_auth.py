@@ -210,3 +210,19 @@ def test_require_roles_blocks_other_roles_with_403(session, role, status):
 
 def test_require_roles_without_a_session_returns_401():
     assert TestClient(guarded_app()).get("/planner-only").status_code == 401
+
+
+def test_session_cookie_is_secure_when_hosted_over_https(session, monkeypatch):
+    make_person(session)
+    session.commit()
+    monkeypatch.setattr(settings, "cookie_secure", True)
+    response = login(TestClient(app))
+    assert response.status_code == 200
+    assert "secure" in response.headers["set-cookie"].lower()
+
+
+def test_session_cookie_is_not_secure_by_default_for_local_http(session):
+    make_person(session)
+    session.commit()
+    response = login(TestClient(app))
+    assert "secure" not in response.headers["set-cookie"].lower()

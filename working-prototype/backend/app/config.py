@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(default_factory=local_secret, validation_alias="DATALENS_JWT_SECRET")
     # DATALENS_AI=0 switches the copilot off, so browser test runs never call the service.
     ai_enabled: bool = Field(default=True, validation_alias="DATALENS_AI")
+    # DATALENS_COOKIE_SECURE=1 when the app is served over https, as on the hosted demo.
+    cookie_secure: bool = Field(default=False, validation_alias="DATALENS_COOKIE_SECURE")
 
     @classmethod
     def settings_customise_sources(
