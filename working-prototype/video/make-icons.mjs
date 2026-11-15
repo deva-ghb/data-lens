@@ -2,7 +2,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 const dir = path.resolve('../frontend/node_modules/lucide-react/dist/esm/icons')
-const NAMES = ['hard-hat', 'calendar-clock', 'badge-check', 'file-check', 'users', 'shield-check', 'stethoscope', 'landmark', 'user-cog', 'thermometer-sun', 'ship', 'radar', 'lock-keyhole', 'gauge', 'heart-handshake', 'sunrise', 'moon-star', 'clock', 'sun']
+const NAMES = ['hard-hat', 'calendar-clock', 'badge-check', 'file-check', 'users', 'shield-check', 'stethoscope', 'landmark', 'user-cog', 'thermometer-sun', 'ship', 'radar', 'lock-keyhole', 'gauge', 'heart-handshake', 'sunrise', 'moon-star', 'clock', 'sun', 'play', 'smartphone', 'flask-conical', 'activity', 'bell-ring', 'code']
 const out = {}
 for (const n of NAMES) {
   const { __iconData } = await import(path.join(dir, `${n}.mjs`))

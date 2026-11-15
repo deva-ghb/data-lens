@@ -125,10 +125,12 @@ class Footage:
             self.cache[k] = json.loads((b['root'] / b['who'] / 'frames.json').read_text())
         return self.cache[k]
 
-    def holds(self, bid, still=None):
-        """Each frame of the beat and how long it stays up. `still` caps a stretch where nothing changes."""
+    def holds(self, bid, still=None, skip=0):
+        """Each frame of the beat and how long it stays up. `still` caps a stretch where nothing changes;
+        `skip` drops the first seconds of the beat, such as a page still loading."""
         b = self.beats[bid]
-        fr, t0, t1 = self.frames(b), b['t0'], b['t1']
+        fr, t1 = self.frames(b), b['t1']
+        t0 = min(b['t0'] + skip * 1000, t1 - 1)
         before = [f for f in fr if f[0] <= t0]
         inside = [f for f in fr if t0 < f[0] < t1]
         seq = ([[t0, before[-1][1]]] if before else []) + inside
@@ -141,9 +143,9 @@ class Footage:
             out.append((fa, min(d, still) if still else d))
         return out
 
-    def clip(self, bid, out, speed, size, still=None):
+    def clip(self, bid, out, speed, size, still=None, skip=0):
         b = self.beats[bid]
-        holds = self.holds(bid, still)
+        holds = self.holds(bid, still, skip)
         d = (b['root'] / b['who']).resolve()
         lines = [f"file '{d / fa}'\nduration {du:.4f}" for fa, du in holds] + [f"file '{d / holds[-1][0]}'"]
         lst = out.with_suffix('.txt')
@@ -153,15 +155,15 @@ class Footage:
               f'pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color=white,format=yuv420p')
         run(['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', lst, '-vf', vf, *X264, '-an', out])
 
-    def raw(self, bid, still=None):
-        return sum(d for _, d in self.holds(bid, still))
+    def raw(self, bid, still=None, skip=0):
+        return sum(d for _, d in self.holds(bid, still, skip))
 
 
 def segment(foot, n, it, voice, size, build, out):
     vdur = duration(voice) if voice else 0
     need = vdur + LEAD_IN + TAIL
-    still = it.get('still', {})
-    raw = {b: foot.raw(b, still.get(b)) for b in it['beats']}
+    still, skip = it.get('still', {}), it.get('skip', {})
+    raw = {b: foot.raw(b, still.get(b), skip.get(b, 0)) for b in it['beats']}
     waits = [b for b in it['beats'] if foot.beats[b].get('wait')]
     plain = sum(v for b, v in raw.items() if b not in waits)
     speed = {b: 1.0 for b in it['beats']}
@@ -175,7 +177,7 @@ def segment(foot, n, it, voice, size, build, out):
     clips = []
     for b in it['beats']:
         c = build / 'clips' / f'{n:02d}-{b}.mp4'
-        foot.clip(b, c, speed[b], size, still.get(b))
+        foot.clip(b, c, speed[b], size, still.get(b), skip.get(b, 0))
         clips.append(c)
     lst = build / 'clips' / f'{n:02d}.txt'
     lst.write_text(''.join(f"file '{c}'\n" for c in clips))
@@ -229,6 +231,9 @@ def main():
         if not shutil.which(tool):
             sys.exit(f'{tool} is not installed: run scripts/setup.sh')
     script = json.loads(Path(a.script).read_text())
+    global LEAD_IN, TAIL, XFADE
+    pace = script.get('pace', {})  # a shorter cut can tighten the room around each line
+    LEAD_IN, TAIL, XFADE = pace.get('lead_in', LEAD_IN), pace.get('tail', TAIL), pace.get('xfade', XFADE)
     size = tuple(script.get('size', [1920, 1080]))
     cfg = script.get('voice', {})
     build = Path(a.build).resolve()

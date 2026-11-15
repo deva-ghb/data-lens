@@ -50,3 +50,44 @@ workplace safety, health and safety, port operations, container terminal, heat s
 ## Thumbnail
 
 `release/thumbnail.jpg` (1280 x 720, the title card).
+
+# YouTube upload: 3-minute challenge cut
+
+File: `release/data-lens-3min.mp4` (2:45). Built from `script-short.json`.
+
+## Title
+
+Data Lens: workforce health risk, caught before the shift (3 min)
+
+## Description
+
+Data Lens catches workforce health risk before a shift starts, not after someone gets hurt.
+It joins signals that already exist, like clinic visits, camp cooling faults, rosters and daily check-ins.
+Health detail stays with the clinic.
+The worker decides what the employer sees.
+
+Want the full end-to-end walkthrough of the product?
+Watch it here: [link to the 12-minute walkthrough]
+Code: https://github.com/deva-ghb/data-lens
+
+Chapters:
+0:00 What Data Lens is
+0:07 The health problem
+0:21 What it does
+0:29 Planning tomorrow's roster
+0:58 An early warning in the camp
+1:21 The worker's phone and check-in
+1:31 During the shift
+1:51 Health stays private
+2:16 Does it work?
+2:24 What we built in this challenge
+2:37 Watch the full walkthrough
+
+Mirsal Terminals and everyone in this video are fictional.
+All names and data are made up for the demo.
+The narration is a computer-generated voice, and the music was composed in code for this video.
+
+## End screen
+
+Add a YouTube end screen element "Video or playlist" pointing at the 12-minute walkthrough.
+Place it over the button on the last card, from 2:37 to the end.

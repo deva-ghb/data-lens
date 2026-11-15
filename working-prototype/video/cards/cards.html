@@ -63,6 +63,23 @@
   .stepbox .icon svg { width: 36px; height: 36px; }
   .stepbox .t { font-size: 25px; font-weight: 600; }
   .stepbox .d { font-size: 17px; line-height: 1.4; opacity: .9; }
+  .tiles.compact .tile { min-height: 0; padding: 22px 24px; gap: 8px; }
+  .tiles.compact .tile .t { font-size: 23px; }
+  .tiles.compact .tile .d { font-size: 17px; }
+  .src { font-size: 15px; color: var(--muted); }
+  .cta { position: relative; display: inline-flex; align-items: center; gap: 16px; padding: 24px 40px; border-radius: 999px;
+         background: var(--accent); color: #fff; font-size: 28px; font-weight: 600; box-shadow: 0 10px 30px rgba(79,93,176,.28); }
+  .cta svg { width: 30px; height: 30px; fill: #fff; }
+  .cta.press { animation: rise 1100ms cubic-bezier(.2,.7,.2,1) forwards, press 360ms ease 3300ms; }
+  @keyframes press { 50% { transform: scale(.95); filter: brightness(.9); } }
+  .ripple { position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px; border-radius: 50%;
+            background: rgba(79,93,176,.35); opacity: 0; animation: ripple 900ms ease-out 3350ms; pointer-events: none; }
+  @keyframes ripple { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(28); } }
+  .fakecur { position: fixed; width: 34px; height: 34px; left: 82vw; top: 86vh; opacity: 0;
+             animation: curin 400ms ease 1600ms forwards, curmove 1300ms cubic-bezier(.3,.7,.2,1) 2000ms forwards; z-index: 5; }
+  @keyframes curin { to { opacity: 1; } }
+  @keyframes curmove { to { left: var(--tx); top: var(--ty); } }
+  .url { font-size: 20px; color: var(--peri-ink); background: var(--peri-fill); border: 1px solid var(--peri-border); padding: 8px 18px; border-radius: 12px; }
   .rule { width: 120px; height: 4px; border-radius: 2px; background: var(--accent); opacity: .5; }
 </style>
 <script src="icons.js"></script>
@@ -173,6 +190,39 @@ const CARDS = {
   ch5: chapter(5, 'Learn, and keep it fair', 'shield-check', 'Wednesday 29 July, late evening', 'The safety desk, the clinic, the authority and the rules that keep it honest.'),
   ch6: chapter(6, 'Close the loop', 'sun', 'Thursday 30 July, 9 am: the morning after', 'The shift is over. Was the warning right?'),
 
+  health: `<div class="card">
+    <div class="eyebrow in">The health problem</div>
+    <h2 class="in" ${d(200)}>The warning signs exist. Nobody joins them before the shift.</h2>
+    <div class="tiles three">
+      ${tile('rose', 'thermometer-sun', 'Heat', '18,970 deaths a year', 'And 22.85 million injuries from excessive heat at work, worldwide. Heat illness is preventable.', 500)}
+      ${tile('lilac', 'moon-star', 'Fatigue', 'Night after night', 'Injury risk climbs with each night in a row, about 1.36 times by the fourth.', 800)}
+      ${tile('sand', 'stethoscope', 'Scattered', 'Six separate systems', 'Clinic visits, lab results, rosters, sensors, camp faults and absence, each reviewed after the fact.', 1100)}
+    </div>
+    <div class="src in" ${d(1400)}>Sources: ILO, Heat at work (2024); published shift-work injury studies.</div>
+  </div>`,
+
+  built: `<div class="card">
+    <div class="eyebrow in">What we built during the challenge</div>
+    <h2 class="in" ${d(200)}>A working product, not a mock-up</h2>
+    <div class="tiles three compact">
+      ${tile('mint', 'gauge', '', 'Roster scoring', '166 people scored against their job in one click, with plain reasons.', 450)}
+      ${tile('sand', 'radar', '', 'Early warning', 'Clinic and camp signals joined, with a ten-step record people confirm.', 650)}
+      ${tile('rose', 'smartphone', '', 'Worker phone', 'Their own language, a three-tap check-in, one tap for "I feel unwell".', 850)}
+      ${tile('lilac', 'lock-keyhole', '', 'Health stays private', 'Clinic-only detail, worker consent, groups under ten hidden.', 1050)}
+      ${tile('peri', 'users', '', 'Eight role views', 'Planner to district authority, each seeing only what the job needs.', 1250)}
+      ${tile('mint', 'flask-conical', '', 'Tested', '4 of 4 events caught 74+ hours early on 90 days of history. 296 automated tests.', 1450)}
+    </div>
+  </div>`,
+
+  click: `<div class="card center">
+    <div class="logo in">${L('datalens')}</div>
+    <h1 class="in" ${d(300)}>If you are interested, please click.</h1>
+    <p class="lead in" ${d(700)}>The full end-to-end walkthrough of the product is here.</p>
+    <div class="cta in press" ${d(1100)}>${I('play')}<span>Watch the full walkthrough · 12 min</span><span class="ripple"></span></div>
+    <div class="url in" ${d(1500)}>Link in the description · github.com/deva-ghb/data-lens</div>
+  </div>
+  <svg class="fakecur" viewBox="0 0 24 24"><path d="M4 2.5 L4 19 L8.6 14.9 L11.6 21.3 L14.3 20 L11.4 13.8 L17.6 13.6 Z" fill="#1f2328" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
+
   end: `<div class="card center">
     <div class="logo in">${L('datalens')}</div>
     <h1 class="in" ${d(300)}>Decide before the shift.</h1>
@@ -183,6 +233,12 @@ const CARDS = {
 
 const id = new URLSearchParams(location.search).get('card') || 'title';
 document.getElementById('root').innerHTML = CARDS[id] || `<h1>Unknown card ${id}</h1>`;
+const cta = document.querySelector('.cta');
+if (cta) {  // aim the pointer at the button's resting place (it rises 10px as it fades in)
+  const r = cta.getBoundingClientRect();
+  document.documentElement.style.setProperty('--tx', `${r.left + r.width * 0.55}px`);
+  document.documentElement.style.setProperty('--ty', `${r.top - 10 + r.height * 0.45}px`);
+}
 </script>
 </body>
 </html>

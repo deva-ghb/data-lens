@@ -1,0 +1,129 @@
+{
+  "size": [
+    1920,
+    1080
+  ],
+  "voice": {
+    "engine": "auto",
+    "azure": "en-US-AndrewNeural",
+    "system": "Daniel",
+    "rate": "-3%"
+  },
+  "pace": {
+    "lead_in": 0.5,
+    "tail": 0.8,
+    "xfade": 0.5
+  },
+  "timeline": [
+    {
+      "beats": [
+        "card-title"
+      ],
+      "line": "This is Data Lens. It catches workforce health risk before the shift starts, not after someone gets hurt."
+    },
+    {
+      "beats": [
+        "card-health"
+      ],
+      "line": "At a Gulf port in July, crews work through thirty five degree nights, often several in a row. The warning signs already exist. They sit in six different systems, and get reviewed after the fact."
+    },
+    {
+      "beats": [
+        "card-idea"
+      ],
+      "line": "Data Lens joins them up. It scores tomorrow's roster, spots trouble days ahead, and keeps health detail with the clinic."
+    },
+    {
+      "beats": [
+        "tiles"
+      ],
+      "line": "The planner scores tomorrow's roster in one click. A hundred and sixty six people, each against their own job. Three should do something else tonight."
+    },
+    {
+      "beats": [
+        "marco"
+      ],
+      "line": "Marco is one of them. The reasons are in work terms: a third night in a row, short sleep, and broken cooling in his camp. Never a diagnosis."
+    },
+    {
+      "beats": [
+        "accept",
+        "approve"
+      ],
+      "line": "Data Lens proposes ground work, with his own crew. The planner accepts. The shift manager approves. Two people, one log."
+    },
+    {
+      "beats": [
+        "sitemap",
+        "record"
+      ],
+      "line": "Days ahead, the head of safety sees Camp Block C on watch. Clinic heat visits and cooling faults both rose. Two kinds of signal agree, so a warning opens before anyone is hurt."
+    },
+    {
+      "beats": [
+        "action"
+      ],
+      "line": "The copilot drafts each step, and a person confirms it. The fix: repair eleven cooling units, with an owner and a date."
+    },
+    {
+      "beats": [
+        "phone",
+        "checkin"
+      ],
+      "line": "Marco gets the change on his phone, in Filipino. Then a three tap check-in: sleep, how he feels, and water."
+    },
+    {
+      "beats": [
+        "foreman"
+      ],
+      "line": "During the shift, the deck sensor stays above thirty two degrees. The foreman gets one instruction: change the work and rest cycle. One tap to confirm."
+    },
+    {
+      "beats": [
+        "unwell",
+        "permitlog"
+      ],
+      "line": "A worker feels unwell. Two taps, and the clinic knows. The permit log records it, without a name."
+    },
+    {
+      "beats": [
+        "clinic",
+        "consent"
+      ],
+      "line": "Only the clinician sees health detail. She records Marco's outcome, and Marco decides if his employer sees it. The outcome, never the reason."
+    },
+    {
+      "beats": [
+        "decline"
+      ],
+      "line": "The copilot follows the same rules. A planner asks for lab results, and it says no."
+    },
+    {
+      "beats": [
+        "district"
+      ],
+      "line": "The district health authority sees totals across employers. Any group under ten is hidden."
+    },
+    {
+      "beats": [
+        "validation"
+      ],
+      "line": "Does it work? On ninety days of history with four hidden events, it caught all four, at least seventy four hours early.",
+      "skip": {
+        "validation": 7.3
+      }
+    },
+    {
+      "beats": [
+        "card-built"
+      ],
+      "line": "What we built in this challenge is a working product. Roster scoring, early warning, a worker phone app, clinic only health data, eight role views, and nearly three hundred automated tests."
+    },
+    {
+      "beats": [
+        "card-click"
+      ],
+      "line": "If you are interested, click here for the full walkthrough."
+    }
+  ]
+}
