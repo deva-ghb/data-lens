@@ -19,3 +19,4 @@ video/build/
 video/node_modules/
 video/footage-part2/
 video/footage-cards/
+frontend/.vite/

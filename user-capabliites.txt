@@ -1,0 +1,43 @@
+Role	Sees	Decides
+Worker	Own profile, tier and reason, health record, the brief and cards	Check-ins. Whether to contest a reassignment. Whether to share the fitness outcome with the employer
+
+
+
+Foreman	Actions for the crew. Never answers or results	Confirms work-rest changes and buddy pairs
+
+
+
+Planner	Tiers, work-term reasons and controls for the site	Accepts or declines swaps, with a logged reason. Max 3 reassignment recommendations per shift
+
+
+
+Shift manager	The planner's reassignment proposals	Approves a "reassign today" swap (from the tier table in 3.3)
+
+
+
+Permit issuer	The permit, crew status as counts, the conditions	Signs, holds or sends back a permit. Can edit drafted conditions
+
+
+
+HSE head	Crew and activity aggregates, fitness outcomes, every record	Confirms warning sections, creates actions (CAPA), shares lessons
+
+
+
+Occupational health clinician	Health detail and lab trends	Fit, fit with restrictions, or not today. Decides which cohort trends leave the clinic. Has the final word on health
+
+
+
+Public health officer	District aggregates of 10 or more	District actions and the summary for the authority
+
+
+
+Labour inspector	District and employer aggregates, plus the audit trail	Where to inspect
+
+
+---
+Admin onboards the people -> worker 
+Key concepts: 
+
+
+To prepare role versus, I think we firstly need to keep the roles limited.
+Reduce the number of roles in the system first of all, if possible. Otherwise, we can keep it as it is.

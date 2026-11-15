@@ -1,0 +1,1131 @@
+Data Lens 
+
+A closed-loop HSE system that predicts the risk of every work assignment 
+
+Concept and product design document, v1.0 
+
+Entry to the Future Health Digital Innovation Challenge, Population Health, Challenge 06: Population and Workforce Health Early Warning 
+
+GYTWorkz with HealthVizor · 14 November 2026 
+
+All sites, people, employers, clinics and figures in this document and in the prototype are synthetic. Where a number is illustrative it is marked as such. 
+
+ 
+
+Contents 
+
+​​ 
+
+​​ 
+
+ 
+
+1. Summary 
+
+Every business is a set of operational activities. Each activity carries an intrinsic risk: a fall from height, a strike by mobile plant, heat illness. An incident happens when that intrinsic risk meets an unsafe act, behaviour or condition. Today the signals that say how likely that meeting is tomorrow already exist, but they sit in different systems: the HSE platform holds the activity and its history, HR holds the roster and training, the clinic holds health, the weather service holds the conditions, and the worker’s own phone holds how he slept. Nobody joins them before the shift. 
+
+Data Lens joins them. It is an HSE application with permit to work built in, and one addition at its centre: for every worker, on every activity, on every shift, it estimates the probability of an unsafe act or condition and turns that into a decision the planner, the permit issuer and the foreman can act on before the work starts. When a pattern crosses a crew, a camp block or a district, it opens an early warning record that runs the same workflow as an incident, before anyone is hurt. When something does happen, the same system runs risk analysis, root cause analysis, inspection, investigation and corrective and preventive action, writes the lessons, and feeds every finding back into the activity register, the behavioural groups and the model weights. That is the closed loop. 
+
+What the user sees. A copilot brief for their role each morning; an activity register with intrinsic risk and UABC history; behavioural groups built from training, tenure and recorded behaviour; an assignment-risk engine; a permit board where every permit carries a people-and-conditions factor; early warning records; and the incident, inspection, action and learning modules a safety team already expects. The AI drafts every section. A named person confirms each one. 
+
+What is asked of the challenge. Data Lens is entered under Challenge 06. Section 12 maps each of the six requirements to the module that meets it. The prototype is a clickable design on a Claude Design canvas; the engineering prototype with synthetic data and the back-test is due on 20 November. 
+
+2. The problem 
+
+Three things are true in any heavy industry with a blue-collar workforce, and ports show all three sharply: 
+
+Assignment is blind. The planner who puts twelve lashers on a vessel deck at 06:00 knows the vessel, the crane and the forecast. He does not know that five of them are on a third night in a row, that two arrived six days ago, that three of them share a room where the cooling failed, or that the clinic saw twice its usual heat visits from that block this week. 
+
+The permit assumes the people are fit. A permit to work assesses the task, the equipment and the environment. The crew is a count of competent people. Readiness is nobody’s field. 
+
+Every warning sign is reviewed after the fact. Clinic visits, sickness absence, near misses, hazard reports and weather are each trended by a different team, each monthly or quarterly, each on its own. The pattern that would have been visible on Monday is found in the investigation on Thursday. 
+
+The result is a safety system that is thorough about what has already happened and silent about what is about to. The challenge statement names exactly this gap: signals reviewed separately or only retrospectively, a meaningful pattern invisible until illness, injury or operational disruption has already grown. 
+
+3. The model 
+
+The idea rests on one sentence from safety practice and one from data: an incident happens when an activity’s intrinsic risk meets an unsafe act, behaviour or condition; and four layers of risk, multiplied, say how likely that meeting is tomorrow. The layers are intrinsic risk (the activity), control risk (how well the controls have held, which is what the UABC record measures), condition risk (the shift as it will be) and profile risk (the person: health, behavioural and work signals). 
+
+ 
+
+Figure 1. The closed loop. Boxes 1 to 4 are the four risk layers, 5 and 6 are the prediction and the decision, 7 is the work, 8 to 11 are what happens afterwards and how it feeds back. 
+
+3.1 The four risk layers 
+
+Risk layer 
+
+What it holds 
+
+Where it comes from 
+
+Example from the prototype 
+
+1. Intrinsic risk: the activity 
+
+Every activity in the business with its hazards, severity if things go wrong, exposure hours, hazard grade 1 to 5, and the safe working practice (SWP) line items that should hold 
+
+HSE activity register, risk register, SWP library, org chart (role → responsibilities → activities) 
+
+Lashing at height on deck: grade 5, 1,440 worker-hours a week, 14 SWP items 
+
+2. Control risk: how well the controls have held 
+
+Unsafe acts, unsafe behaviours and unsafe conditions (UABC) recorded on this activity, the near misses and incidents they led to, and how earlier events were closed 
+
+Observation cards, near-miss and incident reports, SWP breach records, close-out records 
+
+11 unsafe acts, 6 unsafe behaviours, 7 unsafe conditions and 3 near misses in 12 months, all on nights 
+
+3. Condition risk: the shift 
+
+The shift as it will be: heat (WBGT), dust, night, pace of work, vessel and equipment state, and what the accommodation was like the night before 
+
+Weather and air-quality feeds, on-site sensors, TOS and planning, camp operator fault tickets 
+
+WBGT 34 °C at 12:00, 11 of 40 cooling units failed in Camp Block C 
+
+4a. Profile risk: health signals 
+
+Readiness from biomarkers, lab trends, sleep, daily check-ins, and the clinician’s fit-for-task outcome 
+
+HealthVizor, camp and site clinics, the worker’s phone 
+
+Short sleep in 2 of 10 check-ins; one worker cleared by the clinician on 19 July 
+
+4b. Profile risk: behavioural signals 
+
+The behavioural group a person belongs to, by training pathway, tenure, recorded behaviour and work context (section 5) 
+
+Training system, HRMS, safety system 
+
+New arrivals on contractor induction only: 1.6 times the site unsafe-act rate 
+
+4c. Profile risk: work signals 
+
+Nights in a row, acclimatisation days, competency currency, overtime, leave and absence pattern 
+
+Roster, HRMS, training records 
+
+Third night in a row; height refresher not yet completed 
+
+ 
+
+3.2 How they combine 
+
+For a worker w on activity a in shift s, the engine estimates a relative risk R of an unsafe act or condition against a baseline of the same crew, on the same activity, with no shortfalls: 
+
+R(w, a, s) = Intrinsic(a) × Control(a) × Condition(s, a) × Profile(w, a),   Profile(w, a) = Π over f of [ 1 + (m_f − 1) × sens(a, f) ] 
+
+Intrinsic(a) sets the scale and the tier thresholds from the activity’s grade. Control(a) is a multiplier from the UABC rate on this activity against the site average (1.15 for lashing at height in the prototype). Condition(s, a) comes from heat tier, dust, night and pace, weighted by the activity’s sensitivity. Profile(w, a) multiplies the person’s factors: m_f is the multiplier a signal contributes (fatigue, heat strain and acclimatisation, health readiness, competency currency, behavioural group) and sens(a, f) is how sensitive the activity is to that factor, read from a sensitivity matrix set in a two-hour workshop with a port safety head and the clinical lead and then tuned from outcomes. 
+
+Three rules keep the estimate honest: 
+
+Every multiplier is capped. The behavioural group factor is capped at 1.6 and can move the tier by at most one step. No single layer decides a tier on its own. 
+
+Thresholds depend on grade. A grade 5 activity reaches ‘fit with controls’ at R = 1.3 and ‘reassign today’ at 1.9; a grade 3 activity at 1.5 and 2.4. Grades 1 and 2 are not scored per person at all; the crew is watched as a whole. 
+
+Published relative risks seed the weights. Injury risk is 1.17 times higher on heatwave days and 1.36 times higher on a fourth consecutive night. These are the starting multipliers for heat and fatigue, and the back-test moves them. 
+
+3.3 The four tiers 
+
+Tier 
+
+Meaning 
+
+Typical control 
+
+Who decides 
+
+Fit 
+
+Readiness within the activity’s demands under tomorrow’s conditions 
+
+None, logged 
+
+Automatic 
+
+Fit with controls 
+
+One or two dimensions below the line for this activity 
+
+Shorter exposure, an extra work-rest cycle, a buddy, the task moved to cooler hours, closer check-ins 
+
+Planner; foreman confirms 
+
+Reassign today 
+
+A hazard this worker is sensitive to is active under tomorrow’s conditions 
+
+Swap to a lower-hazard activity within the same competency, for example ground twist-lock handling instead of lashing on deck 
+
+Planner; shift manager approves 
+
+Refer 
+
+A health signal needs a clinician before any decision 
+
+Occupational health screening, the worker informed first 
+
+Occupational health clinician 
+
+ 
+
+Boundary. A tier lasts one shift, is never exported, and is never used for hiring, discipline, pay, performance, contract or sponsorship decisions. The worker sees his own tier and the reason, in his own language, and can contest it. The planner sees the tier, a work-term reason and the control, never a diagnosis. The permit sees a count. 
+
+4. Signal families 
+
+The challenge asks for at least two materially different signal types. Data Lens uses five classes across nine feeds in the prototype, and a warning cannot interrupt anyone until two or more classes agree in the same place and period. 
+
+Class 
+
+Feed 
+
+Cadence 
+
+Located to 
+
+Used for 
+
+Clinical and service 
+
+Clinic visits by syndrome 
+
+Daily 
+
+Block 62%, district 38% 
+
+Cluster detection, district view 
+
+Clinical and service 
+
+Lab panels (HealthVizor, clinician reviewed) 
+
+Per test 
+
+Cohort by role and shift 
+
+Health readiness; cohort trends only beyond the clinic 
+
+Workplace 
+
+Sickness absence (HR) 
+
+Each shift 
+
+Crew and berth 
+
+Cluster detection, behavioural group context 
+
+Workplace 
+
+Roster and shift pattern 
+
+Each shift 
+
+Crew and activity 
+
+Fatigue, acclimatisation, crew rules 
+
+Workplace 
+
+Incident, near-miss, hazard and observation reports 
+
+Continuous 
+
+Berth, yard block, camp block 
+
+UABC history, activity baseline, group behaviour 
+
+Workplace 
+
+Training and competency records (HRMS) 
+
+On change 
+
+Person, group 
+
+Competency currency, group definition 
+
+Environmental 
+
+Weather and WBGT forecast; on-site WBGT 
+
+Hourly 
+
+Terminal grid, deck sensor 
+
+Conditions, heat tier, permit suspend condition 
+
+Environmental 
+
+Air quality (PM10, PM2.5, dust) 
+
+Hourly 
+
+District station 
+
+Respiratory warnings 
+
+Community 
+
+Accommodation fault tickets (camp operator) 
+
+Daily 
+
+Camp block 
+
+Recovery conditions 
+
+Worker reported 
+
+Three-tap check-ins and ‘I feel unwell’ 
+
+Shift start, live 
+
+Crew (counts only) 
+
+Readiness, live suspension 
+
+ 
+
+Data quality is a first-class signal. Each feed has an allowed delay; a late feed is named in every warning it touches and is never filled in silently. With fewer than two classes live, nothing above Watch is raised. A worker who has not checked in is unknown, not fit. Records with no location count toward the district total and nothing else. 
+
+5. Behavioural groups 
+
+A single worker’s safety history is thin and noisy: two bad days should not define a person. A group of twenty or more people with the same training pathway and the same exposure gives a stable rate, and that rate is a legitimate, lawful and predictive signal. Behavioural groups are how Data Lens brings the behavioural side into the model without profiling individuals. 
+
+5.1 What defines a group 
+
+Dimension 
+
+Variables 
+
+Source 
+
+Training pathway 
+
+Which induction (site or contractor), which refreshers, when, and whether the activity-specific module (for example the terminal’s lashing sequence) was covered 
+
+Training system 
+
+Tenure and exposure 
+
+Months on this activity, acclimatisation days, shift pattern, consecutive nights 
+
+HRMS, roster 
+
+Recorded behaviour 
+
+Safe and unsafe observation cards per 100, near-miss involvement, SWP breaches, hazard reports made (a sign of engagement) 
+
+Safety system 
+
+Work context 
+
+Employer, overtime worked, leave and absence pattern, production incentive 
+
+HRMS 
+
+ 
+
+5.2 What never defines a group 
+
+Origin, nationality, religion, ethnicity, language group or any other protected attribute. The idea discussed early in the project, that workers from some regions tolerate heat or weight differently, is deliberately not in the model. UAE labour law prohibits it and the judges score fairness; more to the point, the lawful version is more predictive: measured acclimatisation days, graded exposure, heart-rate response where wearables are opted in, and the role’s own testing regime. Those are what the model carries. 
+
+5.3 How a group acts in the model 
+
+A group’s unsafe-act rate on grade 3 to 5 work, relative to the site average, becomes the group multiplier in the safety-behaviour dimension. It is capped at 1.6 and can move a tier by at most one step. 
+
+Membership moves with the record. A refresher completed or 90 clean observation cards moves a person on. Groups are recomputed weekly. 
+
+The planner never sees the group label against a name. The group is a signal, not a list. 
+
+Groups produce their own actions. If new arrivals on contractor induction run 1.6 times the site rate and the record shows the induction skips the terminal’s lashing sequence, the copilot proposes the refresher and a change to the induction, not a warning about the people. 
+
+5.4 The groups in the prototype 
+
+Group 
+
+Defined by 
+
+People 
+
+Unsafe acts per 100 cards 
+
+Multiplier 
+
+What the copilot proposes 
+
+Experienced lashers, in-house induction 
+
+24+ months, site induction, refresher current 
+
+48 
+
+6 
+
+0.8 
+
+Keep one on every high-hazard task 
+
+New arrivals, contractor induction only 
+
+Under 6 months, no site refresher yet 
+
+26 
+
+19 
+
+1.6 
+
+Site height refresher before the next night rotation; cap at two per gang; add the lashing sequence to the contractor induction 
+
+Experienced lashers, extended night rotation 
+
+24+ months, 4 or more consecutive nights in 14 days 
+
+22 
+
+12 
+
+1.3 
+
+Roster rule: no fourth consecutive night on grade 5 work in heat tier 2 or above 
+
+Yard drivers, recent refresher 
+
+Driving refresher in the last 6 months 
+
+58 
+
+7 
+
+0.9 
+
+No change; the evidence for refreshing the next group 
+
+Yard drivers, refresher overdue 
+
+Refresher more than 18 months ago 
+
+31 
+
+15 
+
+1.4 
+
+Book the refresher within 30 days; pair at changeover until then 
+
+Mooring crews, all 
+
+All mooring-competent workers 
+
+34 
+
+9 
+
+1.0 
+
+No change 
+
+ 
+
+Groups 1 and 3 share training and tenure and differ only in roster. The difference in their unsafe-act rate is the evidence for the roster rule. That is the kind of finding the behavioural layer is for: it points at the system, not at the person. 
+
+6. The assignment-risk engine 
+
+The engine runs each evening on tomorrow’s roster and again at shift start on the check-ins. For every worker on every graded activity it returns the tier, the drivers behind it with their source and freshness, the control from the hierarchy of controls, and a confidence that reflects how many inputs were present. 
+
+6.1 The readiness vector 
+
+Six dimensions per worker per shift, each a deficit from 0 (fully ready) to 1, each with a confidence and a freshness: fatigue and alertness; heat strain and acclimatisation; physical capacity; acute state; safety behaviour (where the behavioural group enters); competency currency. 
+
+6.2 The sensitivity matrix 
+
+Each row is a hazard from the activity register, each column a readiness dimension, and each cell says how much a deficit in that dimension raises that hazard: high, medium or low. Version zero is expert-set; the back-test reports which cells the data disagrees with, and a pilot moves them from outcomes. 
+
+Hazard (port activities) 
+
+Fatigue 
+
+Heat strain 
+
+Physical capacity 
+
+Acute state 
+
+Safety behaviour 
+
+Competency 
+
+Fall from height 
+
+H 
+
+H 
+
+M 
+
+H 
+
+H 
+
+H 
+
+Struck by or caught between mobile plant 
+
+H 
+
+M 
+
+L 
+
+M 
+
+H 
+
+M 
+
+Dropped load and lifting 
+
+M 
+
+M 
+
+L 
+
+L 
+
+H 
+
+H 
+
+Heat illness and collapse 
+
+H 
+
+H 
+
+M 
+
+H 
+
+L 
+
+L 
+
+Manual handling injury 
+
+M 
+
+M 
+
+H 
+
+M 
+
+M 
+
+L 
+
+Hot work and confined space 
+
+H 
+
+H 
+
+M 
+
+H 
+
+H 
+
+H 
+
+ 
+
+6.3 Crew rules and the alert budget 
+
+No high-hazard activity in heat tier 2 or above carries more than a quarter of its crew on extra controls. 
+
+Arrivals under seven days of acclimatisation are capped at two per gang. 
+
+Every high-hazard task keeps at least one experienced worker (behavioural group 1 or equivalent). 
+
+At most three reassignment recommendations per shift per planner and two prompts per foreman. Everything else rolls into the shift brief. This is what keeps the system from crying wolf. 
+
+6.4 Roster simulation 
+
+The planner sees tomorrow’s roster with its tiers and the total predicted risk, and the engine proposes swaps within competency and contract constraints that lower it at the least productivity cost. A Monte Carlo run over the uncertain inputs (forecast, attendance, check-in response) splits tomorrow’s risk between conditions and crew, which is the argument for moving a window versus swapping a worker. Version one uses greedy swaps, not an optimiser. 
+
+6.5 Does it reduce incidents? 
+
+On 90 synthetic days with four injected events and the engine deciding assignments, unsafe-act observations on grade 4 and 5 work fall by about a third and all four events are flagged at least 72 hours ahead, with a positive predictive value of 66%. These numbers show the method works end to end on synthetic data; they do not show the hit rate a real site would get. The pilot measures the same things on real records (section 11). 
+
+7. The closed loop in operation 
+
+Two record types run the same workflow. An early warning record opens before anyone is hurt, when a pattern crosses a crew, a block or a district. An incident record opens when something has happened. Both are drafted by the copilot section by section and confirmed by a named role, and both end by updating everything upstream. 
+
+7.1 The early warning record 
+
+Step 
+
+What the copilot drafts 
+
+Who confirms 
+
+1. Detection 
+
+Which signals moved, by how much against baseline, the composite index against the action line, what it is sure and unsure of, and what would raise or lower the level 
+
+HSE head 
+
+2. Activity and controls 
+
+The activity, the hazard, the SWP control that should hold, and what is deviating (the unsafe condition and the precursors to unsafe acts) 
+
+Linked by AI 
+
+3. History and patterns 
+
+Earlier warnings at the same place or pattern, how each was closed, and what followed 
+
+Linked by AI 
+
+4. Drivers 
+
+Contribution by signal, by location and by time period; the underlying driver, stopped at something the organisation controls; the alternatives rejected and why 
+
+HSE head 
+
+5. Risk assessment 
+
+Likelihood from the signals and history, severity from the credible worst case, scored on the site’s own 5 by 5 matrix, with the target after controls 
+
+HSE head 
+
+6. Verify on the ground 
+
+An inspection with one check per driver, in the place and at the time the driver acts; results raise or lower confidence, or record a false alarm 
+
+Supervisors complete; HSE head sends 
+
+7. Controls (CAPA) 
+
+The response level (inform, adjust the work, restrict, escalate); corrective and preventive actions ranked by hierarchy of controls, each with an owner, a due date and an effectiveness check; the assumptions being accepted 
+
+HSE head creates 
+
+8. Permits affected 
+
+Conditions written as drafts into every permit the warning touches: an earlier window, work-rest cycles, buddy pairs, a suspend condition 
+
+Permit issuer signs each permit 
+
+9. Learning 
+
+A one-minute card for the people doing the same work, a toolbox talk, and a proposed change to the SWP, written only from confirmed sections 
+
+HSE head shares 
+
+10. Close 
+
+The outcome is recorded either way, which is how lead time, sensitivity and false alarms are measured 
+
+Automatic at the effectiveness check 
+
+ 
+
+7.2 The incident record 
+
+Reported from a phone with a photo, a voice note or a few words in under a minute. The copilot reads the media, drafts the record in the site’s schema, classifies by potential rather than outcome, traces the safety chain (activity, hazard, control that should have held, unsafe act, unsafe condition, outcome), searches history for the same pattern, proposes the five whys and a root cause the organisation controls, scores risk on the site matrix, builds a targeted inspection, ranks corrective and preventive actions, and writes the alert. A person confirms each step. This is the workflow already built in the GYTWorkz Safety Copilot demo, carried into Data Lens unchanged. 
+
+7.3 What closes the loop 
+
+Control risk learns. Every confirmed incident, near miss, hazard report and observation card adds to the UABC history of its activity and moves its control-risk multiplier and baseline. 
+
+The behavioural groups learn. Group rates are recomputed weekly from the same records. Membership moves with training and clean cards. 
+
+The weights learn. Each closed warning and incident is an outcome. Sensitivity cells and thresholds are proposed for change from outcomes, and a person approves the change; nothing moves silently. 
+
+The SWP changes. Lessons include proposed SWP line items: a night-time cooling check before any heat tier 2 day; deck-level WBGT, not the quay sensor, setting the work-rest cycle. The SWP is a two-way signal: line items in, revisions out. 
+
+Tomorrow’s prediction is better than today’s. That is the test of a closed loop, and it is what the pilot measures. 
+
+8. Permit to work 
+
+The permit is where the prediction becomes a decision with a signature. Data Lens keeps the permit lifecycle a site already runs (requested, assessed, issued, live, suspended or closed) and adds two things the permit usually assumes. 
+
+8.1 The people-and-conditions factor 
+
+Every permit for a graded activity gains a block showing the crew’s readiness mix as counts (fit, fit with controls, to reassign, refer), the crew status (green, amber, red), the top drivers with their source and freshness, the forecast for the window, and the confidence (how many of the crew checked in). No individual is named on the permit; the reassigned worker’s record goes to the planner and to the worker. 
+
+8.2 Conditions drafted into the permit 
+
+An early warning writes its controls into each permit it touches as drafts: a moved window, a work-rest cycle, buddy pairs, a suspend condition such as ‘suspend if deck WBGT stays over 32 °C for 30 minutes’. The issuer sees them, can edit them, and signs. A red crew status blocks issue until the planner settles the open reassignment; the issuer can hold a permit at any point. 
+
+8.3 The permit stays live 
+
+While the permit is live, on-site WBGT, check-ins and the ‘I feel unwell’ tap feed it. When the deck crosses the limit, the work-rest cycle changes and the foreman confirms on his phone; the permit log records it. When a worker taps that he feels unwell, he goes to the cool room, the clinician is notified and the permit shows the event without his name. 
+
+8.4 The record as the permit system receives it 
+
+The integration is a JSON people-factor record per permit, written by the PTW connector: readiness counts, crew status, drivers, added controls, confidence, the closing condition and an audit reference. In the POC the PTW system is mocked; the record format is the contract a real integration would implement. 
+
+9. The product: modules and roles 
+
+9.1 Modules 
+
+Module 
+
+What it does 
+
+Challenge requirement served 
+
+Home: the copilot brief 
+
+A written brief for the role each morning, the records drafted and waiting for a person, the permit board summary, the watchers running, and a question box that answers from the same signals and declines at the role boundary 
+
+3 
+
+Activities and intrinsic risk 
+
+The register per industry: grade, hazards, exposure, SWP items, control risk (UABC history) and the sensitivity profile per activity; an industry switcher for the six UAE sectors in section 9.4 
+
+1, 2 
+
+Behavioural groups 
+
+Group definitions, rates, multipliers and the actions the copilot proposes for each 
+
+2, 3 
+
+Assignment risk 
+
+Pick a worker, an activity and conditions; see the relative risk built layer by layer (intrinsic, control, condition, profile), the tier, the control and the risk after it 
+
+2, 3 
+
+Early warnings 
+
+Site and district views of deviation from baseline by zone, the open warning records, and the explanation of each 
+
+1, 2, 4 
+
+Warning record 
+
+The ten-step record in section 7.1 with ‘show reasoning’ panels, confidence and safety-practice notes 
+
+2, 3, 5 
+
+Permits to work 
+
+The board and the single permit with the people-and-conditions factor, conditions, issue, hold and live events 
+
+3 
+
+Incidents and hazards 
+
+Phone-first reporting; every report is also a signal 
+
+1, 6 
+
+Inspections 
+
+Targeted checklists built from drivers; results update confidence 
+
+5 
+
+Actions 
+
+Corrective and preventive actions across warnings and incidents, by hierarchy of controls, with effectiveness checks 
+
+3, 6 
+
+Learning 
+
+Cards, toolbox talks, proposed SWP changes, read counts by crew 
+
+6 
+
+Health (clinician) 
+
+The screening list with lab trends; a fit, fit-with-restrictions or not-today outcome that reaches the planner without the reason 
+
+4 
+
+Analytics: validation 
+
+The back-test: lead time, sensitivity, positive predictive value, false alarms, alert budget, latency by feed, and behaviour with feeds switched off 
+
+5 
+
+Analytics: impact 
+
+Injuries and workdays avoided from editable assumptions; what a pilot would measure 
+
+6 
+
+Governance 
+
+Who sees what, small-group hiding with an adjustable threshold, the autonomy settings, the line against employment use, the audit trail 
+
+4 
+
+Signals 
+
+The nine feeds, their class, cadence, latency and location quality; connecting a new feed with the copilot mapping columns and excluding free text 
+
+1, 5 
+
+Worker and foreman phones 
+
+Three-tap check-ins, the reason for a reassignment in the worker’s language with a way to contest it, ‘I feel unwell’, the toolbox cards and the foreman’s confirmations 
+
+3, 4 
+
+ 
+
+9.2 Roles 
+
+Role 
+
+Sees 
+
+Decides 
+
+Worker 
+
+His own profile, tier and reason; his health record; the card and the brief 
+
+Check-ins; whether to contest a reassignment; whether to share the outcome with the employer 
+
+Foreman 
+
+Actions for his crew, never answers or results 
+
+Confirms work-rest changes and buddy pairs 
+
+Planner 
+
+Tiers, work-term reasons and controls for his site 
+
+Accepts or declines swaps, with a logged reason 
+
+Permit issuer 
+
+The permit, the crew status as counts, the conditions 
+
+Signs, holds or sends back a permit 
+
+HSE head 
+
+Crew and activity aggregates, fitness outcomes, every record 
+
+Confirms warning sections, creates actions, shares lessons 
+
+Occupational health clinician 
+
+Health detail and lab trends 
+
+Fit, fit with restrictions, not today; which cohort trends leave the clinic 
+
+Public health officer 
+
+District aggregates of ten or more 
+
+District actions and the summary for the authority 
+
+Labour inspector 
+
+District and employer aggregates with the audit trail 
+
+Where to inspect 
+
+ 
+
+9.3 What makes it AI-native 
+
+The home screen is a brief written for the role, not a dashboard. The three decisions it needs come first. 
+
+Every AI section states what it is sure of, what it is unsure of and what would change it, with a confidence and a ‘show reasoning’ panel that lists evidence, rules, inferences and the alternatives it rejected. 
+
+Drafts, not actions. Reassigning a worker, signing a permit and restricting on health grounds are locked to people. Autonomy for the rest (raise a warning, draft a message, change a work-rest cycle) is set per action: tell me, draft it, or do it and tell me. 
+
+Feedback is part of the interface. Marking a warning right, early or a false alarm is logged and proposes a recalibration that a person approves. 
+
+The copilot declines at the role boundary and says so, and it says what it could not see when a feed is missing. 
+
+9.4 Industries 
+
+The model is industry-neutral: the activity register is what changes. The prototype carries six registers for sectors where the UAE has large blue-collar workforces, selectable on the Activities screen. Ports stay the POC vertical; the others show that the same four layers, the same engine and the same closed loop apply once the register and the sensitivity matrix are set for that sector. 
+
+Industry 
+
+Highest-graded activities 
+
+What the register has to carry 
+
+Ports and terminals 
+
+Lashing at height on deck; quay crane operation; mooring and unmooring 
+
+Vessel-call framing, heat tiers, contractor crews and worker accommodation 
+
+Construction 
+
+Work at height on scaffold and edges; tower and mobile crane lifting; excavation near mobile plant; confined space 
+
+The midday break rule from 15 June to 15 September; daily layout change; subcontractor induction pathways 
+
+Oil and gas 
+
+Hot work in live process areas; confined space in vessels; work at height on structures; offshore lifting; breaking containment 
+
+ISSOW permits for every task; 12-hour shifts on 14 or 28 day hitches, with a hitch-day fatigue model; H2S; a different referral threshold offshore because a restriction means a helicopter transfer 
+
+Manufacturing 
+
+Furnace and molten metal; machinery with moving parts; overhead crane and coil handling; energised maintenance 
+
+Lock out and tag out as the binding control; furnace-face WBGT; forklifts and people on the same floor 
+
+Logistics and warehousing 
+
+Forklift and reach truck operation; dock loading; work at height on racking 
+
+Peak-rate pressure; aisle-end interactions; cold store work-rest cycles; yard traffic 
+
+Facilities and utilities 
+
+Live electrical switching; confined space in chambers; roof and facade work; chiller plant 
+
+Dispersed sites and small crews; call-outs and lone working; journey management between sites 
+
+ 
+
+Behavioural groups and the sensitivity matrix are set per industry in the same workshop that sets the register. Permit types follow the industry: ISSOW offshore, lift plans and excavation permits on construction sites, lock out and tag out in plants. 
+
+10. Privacy, fairness and governance 
+
+Data boundary. The employer never sees medical data. It sees aggregates and the fitness outcome. The worker owns the HealthVizor record and consents to the outcome being shared, not the data. This is the pilot-medical and driver-test model, and it holds in the US, the UAE and India. 
+
+Aggregation levels. District: counts of ten or more by zone, across employers, no employer names. Site: crew and activity aggregates. Individual: the worker and the clinician only. 
+
+Small-cell suppression. Any group below the threshold (default 10, settable) is hidden in every view, and totals are rounded so a hidden cell cannot be recovered by subtraction. 
+
+No demographic features. Origin, nationality, religion, ethnicity and language are not model inputs and not group definitions. Fairness is checked by comparing flag rates across employer, age band and the only proxy available in synthetic data, with groups under 20 marked not assessed. 
+
+The line against employment use. Tiers last one shift, cannot be exported, have no connection to HR systems, and are never used for hiring, discipline, pay, performance, contract renewal or sponsorship. A reassignment is not recorded against the worker. Every reassignment can be contested; the clinician has the final word on health. 
+
+Audit. Every AI draft, human decision, declined question and threshold change is logged with the model version, the evidence shown and the person. The labour inspector can read the trail. Nobody can edit it. 
+
+Deployment. Same-region data residency, private cloud or on-premise including the models, tenant-isolated data, designed for UAE PDPL, GDPR and SOC 2 controls. 
+
+11. Validation and impact 
+
+11.1 The back-test harness 
+
+Scenarios are written into a synthetic history (90 days, 400 workers, three employers, 13 activities, one terminal and its accommodation; weather can be replayed from public history for the region). The detector and the assignment engine then run as if live, seeing each day only once. Six measures are reported, as the challenge asks: lead time, sensitivity, positive predictive value, false alarms, data latency and behaviour when inputs are missing. 
+
+Measure 
+
+Run v0.1, synthetic 
+
+How it is measured in a pilot 
+
+Lead time 
+
+72 hours or more for all four injected events 
+
+Hours from first warning to first control in place, against hours from first symptom to response today 
+
+Sensitivity 
+
+4 of 4 injected events found 
+
+Share of confirmed events preceded by a warning 
+
+Positive predictive value 
+
+66% of warnings followed by an event 
+
+Share of warnings followed by a confirmed event, from the outcome recorded at close 
+
+False alarms 
+
+1 in 3 warnings; rate per 30 days to be reported from the submission run 
+
+False alarms per 30 days per site, from the ‘false alarm’ verdict in the record 
+
+Data latency 
+
+30-minute cycle; the slowest feed sets the real delay (clinic 24 h) 
+
+Per feed, against the allowed delay 
+
+Missing inputs 
+
+Named in the warning; level drops one step without clinic or weather; nothing above Watch with fewer than two classes 
+
+The same rules, audited 
+
+ 
+
+Still to run for submission: a hot week with nothing injected (the false-alarm test) and a clinic feed outage during an event (the missing-input test). The action line is set by sweeping it from 1.2 to 2.0 times baseline and choosing the most sensitive setting that keeps every shift inside the alert budget. 
+
+11.2 Impact 
+
+On illustrative inputs (40 lost-time injuries a year per terminal, 40% on hot-exposure days, 20% on a fourth or later night, 70% of warnings acted on, 50% effectiveness, 20 workdays lost per injury), the attributable-share method gives 1.6 lost-time injuries and 31 workdays avoided a year per terminal. The prototype exposes every input so a port can replace them with its own baselines. The figure leaves out heat illness that never becomes an injury, slow harm such as kidney strain over a summer, sickness absence and disruption to a vessel call; a pilot measures each of these directly: earlier intervention, fewer high-severity incidents, fewer occupational illnesses, less sickness absence and lost workdays, and better evidence for policy and regulation through the district report and the audited decision trail. 
+
+12. Mapping to Challenge 06 
+
+Requirement 
+
+How Data Lens meets it 
+
+Where to see it 
+
+1. Multi-signal surveillance: at least two materially different signal types 
+
+Five classes across nine feeds: clinical and service, workplace, environmental, community, worker reported. A warning needs two classes to agree 
+
+Signals; Early warnings 
+
+2. Explainable anomaly detection: show which signals, locations and time periods contributed 
+
+Deviation from each zone’s own baseline; the Detection and Drivers sections of the warning record, broken down by signal, location and time period, with reasoning panels 
+
+Warning record; Early warnings 
+
+3. Actionable decision support: proportionate action, responsible role, evidence and assumptions 
+
+The response ladder; actions each with an owner, due date and effectiveness check; the assumptions listed; the controls written into permits; the assignment-risk engine at the point of work 
+
+Warning record; Actions; Permits; Assignment risk 
+
+4. Privacy-preserving views: aggregation, small-cell suppression, role-based access, boundaries against employment use 
+
+Three aggregation levels; adjustable small-cell threshold with rounding; the role-by-data matrix; the clinician gate; tiers that expire and cannot be exported; no HR connection 
+
+Governance; Health; Early warnings (district) 
+
+5. Operational validation: lead time, sensitivity, PPV, false alarms, latency, missing inputs 
+
+The back-test harness and the six measures; latency by feed; a panel that switches feeds off and shows the warning degrade; every record closed with an outcome 
+
+Analytics: validation; Warning record (close) 
+
+6. Health and resilience impact: earlier intervention, fewer severe incidents and illnesses, less absence, better evidence 
+
+The impact model on editable inputs; the pilot measures; evidence packs for public health, the regulator and the employer 
+
+Analytics: impact; Learning 
+
+ 
+
+The difference from other entries. At least one other team is building Challenge 06 publicly around district and employer alerts with live weather. Data Lens differs in three ways: the decision at the point of work (the assignment and the permit, not only the alert), a scoring engine that is already a live product in HealthVizor, and a worker who gets something back: his own profile, the reason for any change, and a route to care. 
+
+13. Proof of concept scope and plan 
+
+13.1 In the POC, due 20 November 
+
+A synthetic terminal: 400 workers across three employers, 13 activities with hazards, severity, SWP line items, competencies and demand profiles, built around one vessel call so the role grade and individual readiness show on the same shipment. 
+
+The engine: readiness vector per worker per shift, sensitivity matrix v0, behavioural groups from synthetic training and observation records, fit-for-task scoring with drivers and confidence, crew rules, greedy roster swaps, Monte Carlo split of risk between conditions and crew. 
+
+The early warning detector over the nine synthetic feeds, with the two-class rule, the action-line sweep and the alert budget. 
+
+The integrations as mocks: a permit record (JSON) that gains the people-and-conditions factor and the added controls; a templated card and toolbox-talk generator; a mocked WhatsApp thread for the phones. 
+
+The screens on the design canvas, wired to the engine: home brief, activities, groups, assignment risk, early warnings, the warning record, the permit board and permit, incidents, inspections, actions, learning, health, validation, impact, governance, signals, and the two phones. 
+
+The back-test with the six measures, written into the technical documentation with assumptions and limitations stated. 
+
+13.2 Out of the POC 
+
+Live PTW, HRMS and TOS integration; an optimiser; wearable and lab APIs; real clinic data; learned weights (version one is expert-set and back-test-tuned only). 
+
+13.3 Owners and dates 
+
+Workstream 
+
+Owner 
+
+Date 
+
+Register, demand profiles, behavioural group definitions, sensitivity matrix v0 
+
+Srihari, with a port safety head and the clinical lead in a two-hour workshop 
+
+By 16 Nov 
+
+Engine, detector, back-test harness 
+
+GYTWorkz engineer (Deva), with HealthVizor data science for the scoring API on synthetic profiles 
+
+By 18 Nov 
+
+Screens wired to the engine, deployed with monitoring 
+
+GYTWorkz engineer 
+
+By 19 Nov 
+
+Technical documentation, assumptions and limitations, responsible AI statement 
+
+Srihari; clinical lead signs the statement 
+
+By 19 Nov 
+
+Demo video and the five-minute story 
+
+Fifth seat 
+
+By 20 Nov 
+
+Submission on the portal 
+
+Team lead 
+
+20 Nov 
+
+ 
+
+14. Assumptions, limitations and open items 
+
+14.1 Assumptions 
+
+An activity register and SWP library exist or can be built from the org chart and the HSE activity list in the first two weeks of a pilot. 
+
+Observation cards, near-miss reports and training records are available with enough history (12 months) to compute group rates for groups of 20 or more. 
+
+Workers enrol in HealthVizor by choice and consent to the outcome, not the data, being shared with the employer. 
+
+Published relative risks for heat (1.17) and consecutive nights (1.36) are reasonable seeds for the weights until a site has outcomes of its own. 
+
+14.2 Limitations 
+
+All validation to date is on synthetic history with expert-set weights and injected events. It shows the method works end to end; it does not show a real site’s hit rate. 
+
+The fairness check in synthetic data shows large gaps for small groups, which is noise; groups under 20 are marked not assessed. 
+
+Weather is modelled or replayed, not live; the WhatsApp channel is simulated; the PTW, HRMS and TOS connectors are mocks. 
+
+The behavioural group multiplier is a group rate applied to a person. It is capped and limited to one tier step for exactly that reason, and a pilot should test whether even that is justified by outcomes. 
+
+14.3 Open items 
+
+Name the team lead and the clinical lead; collect employer permissions in writing. 
+
+Confirm the submission date on the portal (the page said 20 November; the call said Monday 17 November) and whether the team is registered. 
+
+Open the HealthVizor API for synthetic profiles and agree the contract with the engineer. 
+
+Book the sensitivity-matrix workshop; set the behavioural group definitions in the same session. 
+
+Ask one port operator, contractor or occupational health provider for a letter of interest for summer 2027. 
+
+Verify the exact wording of the six requirements on the portal and re-tag the slides and screens. 
+
+Naming after the challenge: Data Lens, FitWorks and ‘workforce intelligence’ are all on the table. 
